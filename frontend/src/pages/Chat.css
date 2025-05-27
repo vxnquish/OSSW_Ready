@@ -1,0 +1,115 @@
+.chat-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Malgun Gothic', dotum, '돋움', sans-serif;
+  background-color: #fff0f5;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.chat-container h2 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #e91e63;
+}
+
+.keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.keywords button {
+  background-color: #ffc1e3;
+  color: #880e4f;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.keywords button:hover {
+  background-color: #ff80ab;
+  color: white;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.input-group input {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #f48fb1;
+  border-radius: 8px;
+  outline: none;
+}
+
+.input-group button {
+  padding: 0.8rem 1rem;
+  background-color: #e91e63;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.input-group button:hover {
+  background-color: #ad1457;
+}
+
+.history {
+  list-style: none;
+  padding: 0;
+}
+
+.history li {
+  background-color: #fff;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  border: 1px solid #f8bbd0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.history li p {
+  margin: 0.3rem 0;
+  line-height: 1.4;
+}
+
+.history small {
+  color: #999;
+}
+
+.spinner-wrapper {
+  text-align: center;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  color: #777;
+}
+
+.spinner {
+  margin: 0 auto 0.5rem;
+  width: 36px;
+  height: 36px;
+  border: 4px solid #f8bbd0;
+  border-top: 4px solid #e91e63;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

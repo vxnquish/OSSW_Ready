@@ -1,0 +1,138 @@
+#root {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Malgun Gothic', dotum, '돋움', sans-serif;
+  color: #333;
+}
+
+/* ───────────── NAVIGATION ───────────── */
+nav {
+  display: flex;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  padding: 1rem;
+  gap: 1.5rem;
+  font-size: 1.1rem;
+}
+
+nav a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+nav a:hover {
+  color: #e91e63;
+}
+
+/* ───────────── LOGO EFFECT ───────────── */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+/* ───────────── CARD ───────────── */
+.card {
+  background-color: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 2rem;
+  margin: 1rem auto;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.read-the-docs {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* ───────────── FORUM 게시판 스타일 ───────────── */
+.forum-container {
+  margin-top: 2rem;
+}
+
+.forum-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.forum-top input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.forum-top button {
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  border: none;
+  background-color: #e91e63;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.forum-top button:hover {
+  background-color: #d81b60;
+}
+
+.forum-posts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.forum-item {
+  background-color: #fff;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.forum-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.forum-item p {
+  margin: 0;
+  font-weight: 500;
+  font-size: 1.05rem;
+}
+
+.empty {
+  padding: 1rem;
+  text-align: center;
+  color: #888;
+}
