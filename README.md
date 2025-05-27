@@ -21,6 +21,7 @@
 | **백엔드** | Java + Spring Boot | REST API 서버 |
 |  | Maven | Java 빌드 및 의존성 관리 |
 | **API 연동** | Together.ai | GPT 기반 무료 AI API |
+|  | Kakao | 카카오맵과 연동 |
 | **HTTP 통신** | OkHttp, Gson | 외부 API 요청 및 JSON 파싱 |
 | **패키지 매니저** | npm | 프론트엔드 의존성 관리 |
 | **IDE** | VSCode | 전체 개발 환경 |
