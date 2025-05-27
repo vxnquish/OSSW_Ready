@@ -33,11 +33,12 @@
 ## 🚀 실행 방법
 
 새로운 터미널에
-cd backend
-./gradlew bootRun
+- cd backend
+- ./gradlew bootRun
 
-cd frontend
-npm run dev
+새로운 터미널에
+- cd frontend
+- npm run dev
 
 ---
 
