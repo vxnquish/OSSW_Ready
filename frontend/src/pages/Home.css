@@ -1,50 +1,407 @@
+/* ═══════════════════════════════════════════════════════════════ */
+/*                     FRESH MODERN HOME STYLES                    */
+/* ═══════════════════════════════════════════════════════════════ */
+
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
 .home-container {
   text-align: center;
-  padding: 5rem 1rem;
-  background: linear-gradient(to bottom, #ffe6ea, #fff3f5);
+  padding: 0;
+  background: #0a0118;
   min-height: 100vh;
-  font-family: 'Malgun Gothic', dotum, '돋움', sans-serif;
+  font-family: 'Outfit', 'Sora', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
+/* Animated Gradient Orbs */
+.home-container::before,
+.home-container::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.7;
+  animation: floatOrb 20s infinite ease-in-out;
+}
+
+.home-container::before {
+  width: 600px;
+  height: 600px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ec4899 100%);
+  top: -300px;
+  left: -200px;
+  animation-delay: 0s;
+}
+
+.home-container::after {
+  width: 500px;
+  height: 500px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #feca57 100%);
+  bottom: -250px;
+  right: -150px;
+  animation-delay: 10s;
+}
+
+/* Additional floating orbs */
+.home-container .orb1,
+.home-container .orb2 {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.5;
+}
+
+.home-container .orb1 {
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: floatOrb 25s infinite ease-in-out reverse;
+}
+
+.home-container .orb2 {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  bottom: 10%;
+  left: 10%;
+  animation: floatOrb 30s infinite ease-in-out;
+}
+
+@keyframes floatOrb {
+  0%, 100% { 
+    transform: translate(0, 0) scale(1) rotate(0deg); 
+  }
+  25% { 
+    transform: translate(100px, -100px) scale(1.1) rotate(90deg); 
+  }
+  50% { 
+    transform: translate(-50px, 100px) scale(0.9) rotate(180deg); 
+  }
+  75% { 
+    transform: translate(-100px, -50px) scale(1.05) rotate(270deg); 
+  }
+}
+
+/* Particle Background */
+.particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.particles span {
+  position: absolute;
+  display: block;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  animation: particleFloat 15s infinite linear;
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Main Title with Gradient Animation */
 .home-title {
-  font-size: 2.8rem;
-  color: #e91e63;
-  margin-bottom: 1rem;
+  font-family: 'Space Grotesk', 'Outfit', sans-serif;
+  font-size: 5rem;
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  position: relative;
+  z-index: 10;
+  background: linear-gradient(
+    135deg,
+    #fff 0%,
+    #f472b6 25%,
+    #a78bfa 50%,
+    #60a5fa 75%,
+    #fff 100%
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 8s ease infinite;
+  text-shadow: 0 0 80px rgba(167, 139, 250, 0.5);
 }
 
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Glitch Effect on Hover */
+.home-title:hover {
+  animation: glitch 0.3s ease infinite;
+}
+
+@keyframes glitch {
+  0%, 100% {
+    text-shadow: 
+      0 0 80px rgba(167, 139, 250, 0.5),
+      2px 2px 0 rgba(236, 72, 153, 0.8),
+      -2px -2px 0 rgba(96, 165, 250, 0.8);
+  }
+  50% {
+    text-shadow: 
+      0 0 80px rgba(167, 139, 250, 0.5),
+      -2px 2px 0 rgba(236, 72, 153, 0.8),
+      2px -2px 0 rgba(96, 165, 250, 0.8);
+  }
+}
+
+/* Subtitle with Typing Effect */
 .home-subtitle {
-  font-size: 1.2rem;
-  color: #555;
-  margin-bottom: 3rem;
+  font-family: 'Sora', 'Outfit', sans-serif;
+  font-size: 1.4rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 4rem;
+  font-weight: 400;
+  max-width: 700px;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  position: relative;
+  z-index: 10;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
 }
 
+/* Futuristic Button Container */
 .home-buttons {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: 2rem;
   margin-bottom: 3rem;
+  position: relative;
+  z-index: 10;
 }
 
+/* Neon Glow Buttons */
 .home-btn {
-  background-color: #ff8ba7;
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  padding: 1.5rem 3rem;
+  border-radius: 100px;
   text-decoration: none;
   font-size: 1.1rem;
-  font-weight: bold;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: all 0.2s ease-in-out;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Gradient Border Animation */
+.home-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 100px;
+  padding: 2px;
+  background: linear-gradient(135deg, #667eea, #ec4899, #f472b6, #a78bfa);
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: exclude;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+/* Inner Glow Effect */
+.home-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
 }
 
 .home-btn:hover {
-  background-color: #ff5e88;
-  transform: translateY(-3px);
+  transform: translateY(-5px) scale(1.05);
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 10px 40px rgba(167, 139, 250, 0.4),
+    0 0 60px rgba(236, 72, 153, 0.3),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
-.home-footer {
-  color: #888;
-  font-size: 0.9rem;
-  margin-top: 2rem;
+.home-btn:hover::before {
+  opacity: 1;
+  animation: borderRotate 3s linear infinite;
 }
+
+.home-btn:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+@keyframes borderRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.home-btn:active {
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Enhanced Footer */
+.home-footer {
+  font-family: 'Sora', sans-serif;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  margin-top: 3rem;
+  font-weight: 400;
+  position: relative;
+  z-index: 10;
+  letter-spacing: 0.5px;
+}
+
+/* Heart Animation */
+.home-footer::after {
+  content: '💖';
+  display: inline-block;
+  animation: heartbeat 1.5s ease infinite;
+  margin-left: 0.5rem;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .home-container {
+    padding: 2rem 1rem;
+  }
+  
+  .home-title {
+    font-size: 3.5rem;
+  }
+  
+  .home-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 3rem;
+    padding: 0 1rem;
+  }
+  
+  .home-buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+    gap: 1.5rem;
+  }
+  
+  .home-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 1.25rem 2rem;
+  }
+  
+  .home-container::before {
+    width: 400px;
+    height: 400px;
+  }
+  
+  .home-container::after {
+    width: 350px;
+    height: 350px;
+  }
+}
+
+/* Ultra-wide screens */
+@media (min-width: 1920px) {
+  .home-title {
+    font-size: 6rem;
+  }
+  
+  .home-subtitle {
+    font-size: 1.6rem;
+  }
+  
+  .home-btn {
+    font-size: 1.2rem;
+    padding: 1.75rem 3.5rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .home-title {
+    text-shadow: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .home-container {
+    background: #000000;
+  }
+  
+  .home-btn {
+    border: 2px solid #ffffff;
+    background: #000000;
+  }
+}
+
+/* Add particle elements dynamically */
+.home-container .particles span:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 15s; }
+.home-container .particles span:nth-child(2) { left: 20%; animation-delay: 2s; animation-duration: 12s; }
+.home-container .particles span:nth-child(3) { left: 30%; animation-delay: 4s; animation-duration: 18s; }
+.home-container .particles span:nth-child(4) { left: 40%; animation-delay: 0s; animation-duration: 13s; }
+.home-container .particles span:nth-child(5) { left: 50%; animation-delay: 3s; animation-duration: 15s; }
+.home-container .particles span:nth-child(6) { left: 60%; animation-delay: 2s; animation-duration: 20s; }
+.home-container .particles span:nth-child(7) { left: 70%; animation-delay: 1s; animation-duration: 14s; }
+.home-container .particles span:nth-child(8) { left: 80%; animation-delay: 6s; animation-duration: 16s; }
+.home-container .particles span:nth-child(9) { left: 90%; animation-delay: 4s; animation-duration: 19s; }
+.home-container .particles span:nth-child(10) { left: 95%; animation-delay: 7s; animation-duration: 12s; }

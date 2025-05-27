@@ -15,7 +15,7 @@ const Home = () => {
       </div>
 
       <footer className="home-footer">
-        © 2025 RUREADYIMREADY | Made with 💖
+        © 2025 RUREADYIMREADY | CAU CSE OSSW Team Project
       </footer>
     </div>
   );

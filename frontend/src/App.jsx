@@ -6,6 +6,7 @@ import Recommend from './pages/Recommend';
 import Forum from './pages/Forum';            // ✅ 게시판 목록
 import ForumWrite from './pages/ForumWrite';  // ✅ 게시글 작성
 import ForumDetail from './pages/ForumDetail'; // ✅ 게시글 상세
+import './App.css';
 
 const App = () => (
   <Router>
