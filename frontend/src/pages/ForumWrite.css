@@ -1,212 +1,386 @@
 /* ═══════════════════════════════════════════════════════════════ */
-/*                    MODERN FORUM WRITE STYLES                    */
+/*                   BEAUTIFUL FORUM WRITE STYLES                  */
 /* ═══════════════════════════════════════════════════════════════ */
 
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Main Container */
 .forum-write {
   width: 100%;
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 3rem;
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  max-width: 900px;
+  margin: 3rem auto;
+  padding: 3.5rem;
+  background: #0a0118;
+  border-radius: 32px;
+  box-shadow: 
+    0 40px 80px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  gap: 2rem;
+  font-family: 'Inter', 'Outfit', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   position: relative;
   overflow: hidden;
+  /* 중앙 정렬 */
+  text-align: center;
+  align-items: center;
 }
 
+/* Animated Gradient Background */
 .forum-write::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background: 
-    radial-gradient(circle at 80% 20%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
-  pointer-events: none;
+    radial-gradient(circle at 30% 30%, rgba(102, 126, 234, 0.3) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(236, 72, 153, 0.25) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.2) 0%, transparent 50%);
+  animation: floatGradient 25s ease-in-out infinite;
+  z-index: 0;
 }
 
+@keyframes floatGradient {
+  0%, 100% { transform: rotate(0deg) scale(1) translate(0, 0); }
+  33% { transform: rotate(120deg) scale(1.1) translate(10%, -10%); }
+  66% { transform: rotate(240deg) scale(0.9) translate(-10%, 10%); }
+}
+
+/* Floating Particles */
+.forum-write::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: particleFloat 20s linear infinite;
+  z-index: 1;
+}
+
+@keyframes particleFloat {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-50px, -50px); }
+}
+
+/* Content positioning */
+.forum-write > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Title with Neon Effect */
 .forum-write h2 {
-  font-size: 2.5rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 3rem;
   font-weight: 800;
-  margin: 0 0 1rem 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 0 0 1.5rem 0;
+  background: linear-gradient(
+    135deg,
+    #fff 0%,
+    #f472b6 25%,
+    #a78bfa 50%,
+    #60a5fa 75%,
+    #fff 100%
+  );
+  background-size: 200% 200%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-align: center;
-  letter-spacing: -0.02em;
-  position: relative;
-  z-index: 1;
+  animation: neonGlow 6s ease infinite;
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 40px rgba(167, 139, 250, 0.5);
 }
 
+@keyframes neonGlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Input Fields */
 .forum-write input,
 .forum-write textarea {
-  padding: 18px 24px;
-  font-size: 1.05rem;
   width: 100%;
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 16px;
+  padding: 20px 28px;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
   outline: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
   font-weight: 500;
-  font-family: inherit;
-  position: relative;
-  z-index: 1;
+  font-family: 'Inter', sans-serif;
+  color: #1a1a1a;
 }
 
 .forum-write input::placeholder,
 .forum-write textarea::placeholder {
-  color: #9ca3af;
+  color: rgba(26, 26, 26, 0.5);
   font-weight: 400;
 }
 
 .forum-write textarea {
-  min-height: 200px;
+  min-height: 250px;
   resize: vertical;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
+/* Focus Effect */
 .forum-write input:focus,
 .forum-write textarea:focus {
   background: #ffffff;
-  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.5);
   box-shadow: 
-    0 8px 30px rgba(102, 126, 234, 0.15),
-    0 0 0 3px rgba(102, 126, 234, 0.08);
+    0 12px 40px rgba(102, 126, 234, 0.2),
+    0 0 0 4px rgba(102, 126, 234, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
   transform: translateY(-2px);
 }
 
+/* Submit Button */
 .forum-write button {
   width: auto;
+  min-width: 200px;
   align-self: center;
-  padding: 16px 48px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 18px 56px;
+  background: linear-gradient(135deg, #f472b6 0%, #a78bfa 50%, #60a5fa 100%);
+  background-size: 200% 100%;
   color: white;
   border: none;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  border-radius: 16px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+  border-radius: 60px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 10px 30px rgba(167, 139, 250, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   position: relative;
   overflow: hidden;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  z-index: 1;
+  letter-spacing: 1px;
+  margin-top: 1rem;
 }
 
+/* Button Ripple Effect */
 .forum-write button::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.forum-write button:hover::before {
-  left: 100%;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
 }
 
 .forum-write button:hover {
-  background: linear-gradient(135deg, #5a6fd8 0%, #6a4c93 100%);
+  background-position: 100% 0;
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 10px 35px rgba(102, 126, 234, 0.5);
+  box-shadow: 
+    0 15px 40px rgba(167, 139, 250, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.forum-write button:hover::before {
+  width: 400px;
+  height: 400px;
 }
 
 .forum-write button:active {
   transform: translateY(-1px) scale(1.02);
 }
 
+/* Tag Selection Section */
 .tag-select {
-  margin-top: 1rem;
-  padding: 2rem;
-  background: linear-gradient(145deg, rgba(248, 250, 252, 0.8), rgba(241, 243, 244, 0.8));
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  position: relative;
-  z-index: 1;
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 2.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .tag-select p {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 1rem;
+  color: #ffffff;
+  margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.75rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .tag-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.2rem;
+  justify-content: center;
 }
 
+/* Tag Items */
 .tag-item {
   font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: #ffffff;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 50px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 2px solid transparent;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   font-weight: 600;
   color: #374151;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Tag Hover Effect */
+.tag-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.tag-item:hover::before {
+  left: 100%;
 }
 
 .tag-item:hover {
-  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: rgba(167, 139, 250, 0.3);
 }
 
+/* Checkbox Styling */
 .tag-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #667eea;
+  width: 20px;
+  height: 20px;
+  accent-color: #a78bfa;
   cursor: pointer;
+  position: relative;
 }
 
+/* Selected Tag State */
 .tag-item:has(input:checked) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #a78bfa 100%);
   color: white;
   border-color: transparent;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 
+    0 8px 25px rgba(167, 139, 250, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: tagPulse 2s ease infinite;
+}
+
+@keyframes tagPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* Hide checkbox for selected items */
+.tag-item:has(input:checked) input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  position: relative;
+}
+
+.tag-item:has(input:checked) input[type="checkbox"]::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .forum-write {
-    margin: 1rem;
-    padding: 2rem 1.5rem;
+    margin: 1.5rem;
+    padding: 2.5rem 1.5rem;
   }
   
   .forum-write h2 {
-    font-size: 2rem;
+    font-size: 2.5rem;
+  }
+  
+  .forum-write input,
+  .forum-write textarea {
+    padding: 16px 24px;
+    font-size: 1rem;
   }
   
   .forum-write button {
     width: 100%;
+    padding: 16px 40px;
   }
   
   .tag-select {
-    padding: 1.5rem;
+    padding: 2rem;
+  }
+  
+  .tag-select p {
+    font-size: 1.2rem;
+  }
+  
+  .tag-list {
+    gap: 1rem;
+  }
+  
+  .tag-item {
+    padding: 0.8rem 1.2rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Loading State */
+.forum-write button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Success Animation */
+@keyframes successPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
   }
 }
