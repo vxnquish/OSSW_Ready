@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { askLoveAdvice } from '../api/flask';
 import './Chat.css';
+import loveIcon from '../../icons/loveletterEmoji.png';
+
 
 const keywordHints = ["짝사랑", "고백", "이별", "썸", "데이트", "연애", "장거리", "연락", "권태기"];
 
@@ -43,11 +45,22 @@ export default function Chat() {
 
   return (
     <div className="chat-container">
-      <h2>💌 연애 상담</h2>
+      <h2>
+        <img
+            src={loveIcon}
+            alt="연애상담 아이콘"
+            style={{
+              width: '1.4em',
+              verticalAlign: 'middle',
+              marginRight: '0.4rem'
+            }}
+        />
+        연애 상담
+      </h2>
 
       <div className="keywords">
         {keywordHints.map((k, i) => (
-          <button key={i} onClick={() => setMessage(k)}>{k}</button>
+            <button key={i} onClick={() => setMessage(k)}>{k}</button>
         ))}
       </div>
 

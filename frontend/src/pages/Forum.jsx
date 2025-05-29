@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Forum.css';
+import megaphone from "../../icons/megaphone.png";
+
 
 export default function Forum() {
   const [posts, setPosts] = useState([]);
@@ -27,16 +29,25 @@ export default function Forum() {
 
   return (
     <div className="forum-container">
-      <h2>📢 익명 게시판</h2>
+      <h2>
+          <img
+              src={megaphone}
+              alt="지도 아이콘"
+              style={{
+                  width: '1.4em',
+                  verticalAlign: 'middle',
+                  marginRight: '0.4rem'
+              }}
+          />익명 게시판</h2>
 
-      <div className="forum-top">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="검색어 입력"
-        />
-        <button onClick={() => navigate('/forum/write')}>작성</button>
+        <div className="forum-top">
+            <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="검색어 입력"
+            />
+            <button onClick={() => navigate('/forum/write')}>작성</button>
       </div>
 
       <ul className="forum-posts">
