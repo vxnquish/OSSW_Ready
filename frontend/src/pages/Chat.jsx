@@ -19,14 +19,16 @@ export default function Chat() {
         answer: res.response,
         time: new Date().toLocaleTimeString()
       };
-      setHistory([...history, newEntry]);
+      // 새로운 항목을 배열의 앞에 추가
+      setHistory([newEntry, ...history]);
       setMessage('');
     } catch (err) {
-      setHistory([...history, {
+      // 에러 메시지도 배열의 앞에 추가
+      setHistory([{
         question: message,
         answer: '⚠️ 응답 중 오류가 발생했습니다.',
         time: new Date().toLocaleTimeString()
-      }]);
+      }, ...history]);
     } finally {
       setLoading(false);
     }
