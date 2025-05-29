@@ -106,9 +106,12 @@
 /* Input Fields */
 .forum-write input,
 .forum-write textarea {
-  width: 100%;
   padding: 20px 28px;
   font-size: 1.1rem;
+  width: 100%;
+  margin: 0 auto;       /* 추가 */
+  display: block; /* 추가 */
+  box-sizing: border-box; /* 추가 */
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border: 2px solid rgba(255, 255, 255, 0.1);
