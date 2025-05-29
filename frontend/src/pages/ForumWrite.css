@@ -48,15 +48,16 @@
 
 .forum-write input,
 .forum-write textarea {
-  padding: 18px 24px;
-  font-size: 1.05rem;
+  padding: 20px 28px;
+  font-size: 1.1rem;
   width: 100%;
   margin: 0 auto;       /* 추가 */
   display: block; /* 추가 */
   box-sizing: border-box; /* 추가 */
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
   outline: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -74,8 +75,8 @@
 
 .forum-write textarea {
   min-height: 200px;
-  resize: vertical; /* vertical -> none */
-  line-height: 1.6;
+  resize: vertical;
+  line-height: 1.7;
 }
 
 .forum-write input:focus,
