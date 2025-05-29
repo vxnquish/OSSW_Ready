@@ -12,6 +12,7 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  /*align-items : center; /*추가*/
   gap: 1.5rem;
   font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
   position: relative;
@@ -50,6 +51,9 @@
   padding: 18px 24px;
   font-size: 1.05rem;
   width: 100%;
+  margin: 0 auto;       /* 추가 */
+  display: block; /* 추가 */
+  box-sizing: border-box; /* 추가 */
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
   border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 16px;
@@ -70,7 +74,7 @@
 
 .forum-write textarea {
   min-height: 200px;
-  resize: vertical;
+  resize: vertical; /* vertical -> none */
   line-height: 1.6;
 }
 
