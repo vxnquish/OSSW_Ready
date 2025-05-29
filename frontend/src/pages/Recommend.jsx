@@ -1,6 +1,8 @@
 // src/pages/Recommend.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import './Recommend.css';
+import mapIcon from '../../icons/lovemap.png';
+
 
 export default function Recommend() {
   // 검색 키워드 상태 (기본값: '홍대 데이트')
@@ -142,13 +144,22 @@ export default function Recommend() {
 
   return (
     <div className="recommend-container">
-      <h2>🗺️ 장소 검색 & 데이트 코스</h2>
+      <h2>
+        <img
+            src={mapIcon}
+            alt="지도 아이콘"
+            style={{
+              width: '1.4em',
+              verticalAlign: 'middle',
+              marginRight: '0.4rem'
+            }}
+        />장소 검색 & 데이트 코스</h2>
       <div className="map_wrap">
         {/* 왼쪽: 검색 결과 리스트 */}
         <div id="results_wrap" className="bg_white">
           <ul id="placesList">
             {places.map((place, i) => (
-              <li key={i} className={`item marker_${i + 1}`}>
+                <li key={i} className={`item marker_${i + 1}`}>
                 <span className="markerbg"></span>
                 <div className="info">
                   <h5>{place.place_name}</h5>
