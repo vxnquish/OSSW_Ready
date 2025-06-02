@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ForumWrite.css';
+import mapIcon from '../../icons/pencilEmoji.png';
 
 export default function ForumWrite() {
   const [title, setTitle] = useState('');
@@ -55,17 +56,26 @@ export default function ForumWrite() {
 
   return (
     <div className="forum-write">
-      <h2>✍️ 게시글 작성</h2>
+      <h2>
+        <img
+            src={mapIcon}
+            alt="작성아이콘"
+            style={{
+              width: '1.4em',
+              verticalAlign: 'middle',
+              marginRight: '0.4rem'
+            }}
+        />게시글 작성</h2>
       <input
-        type="text"
-        placeholder="제목을 입력하세요"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+          type="text"
+          placeholder="제목을 입력하세요"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
       />
       <textarea
-        placeholder="내용을 입력하세요"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
+          placeholder="내용을 입력하세요"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
       />
 
       <div className="tag-select">
