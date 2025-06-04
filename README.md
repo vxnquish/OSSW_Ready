@@ -19,7 +19,7 @@
 | **프론트엔드** | React + Vite | 빠른 개발과 HMR을 위한 환경 구성 |
 |  | JavaScript (JSX), CSS | UI/UX 구성 |
 | **백엔드** | Java + Spring Boot | REST API 서버 |
-|  | Maven | Java 빌드 및 의존성 관리 |
+|  | Gradle | Java 빌드 및 의존성 관리 |
 | **API 연동** | Together.ai | GPT 기반 무료 AI API |
 |  | Kakao | 카카오맵과 연동 |
 | **HTTP 통신** | OkHttp, Gson | 외부 API 요청 및 JSON 파싱 |
@@ -79,8 +79,8 @@
 
 | 도구 | 용도 | 설치 링크 |
 |------|------|-----------|
-| Java 11+ | 백엔드 실행 |
-| Maven | 빌드 도구 |
+| Java 17+ | 백엔드 실행 |
+| Gradle | 빌드 도구 |
 | Node.js & npm | 프론트 실행 |
 | VSCode | 에디터 | 
 
@@ -88,7 +88,7 @@
 
 ## 🧑‍💻 오픈소스 활용
 
-- React, Vite, Spring Boot, Maven 등 오픈소스 프레임워크 사용
+- React, Vite, Spring Boot, Gradle 등 오픈소스 프레임워크 사용
 - OkHttp, Gson (오픈소스 HTTP/JSON 라이브러리)
 - 무료 AI API
 - 카카오맵 API
