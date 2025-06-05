@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -37,4 +38,9 @@ public interface ForumRepository extends JpaRepository<ForumContent, Long> {
 
     @Query("select new com.rureadyimready.backend.controller.dto.ForumTitleDTO(f.id, f.title, f.createdAt) from ForumTags ft join ft.forumContent f join ft.tags t where t.value = :tag")
     Page<ForumTitleDTO> findByTagName(@Param("tag") String tag, Pageable pageable);
+    @Query("select new com.rureadyimready.backend.controller.dto.ForumTitleDTO(f.id, f.title, f.createdAt) " +
+            "from ForumTags ft join ft.forumContent f join ft.tags t " +
+            "where t.value IN :tags " +
+            "group by f.id, f.title, f.createdAt")
+    Page<ForumTitleDTO> findByTagNames(@Param("tags") List<String> tags, Pageable pageable);
 }

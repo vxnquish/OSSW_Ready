@@ -6,7 +6,7 @@ import megaphone from "../../icons/megaphone.png";
 export default function Forum() {
     const [posts, setPosts] = useState([]);
     const [search, setSearch] = useState('');
-    const [selectedTag, setSelectedTag] = useState('');
+    const [selectedTags, setSelectedTags] = useState([]); // 배열로 변경
     const [availableTags, setAvailableTags] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
@@ -37,10 +37,16 @@ export default function Forum() {
             });
     };
 
-    // 태그로 검색
-    const searchByTag = (tag) => {
+    // 다중 태그로 검색
+    const searchByTags = (tags) => {
+        if (tags.length === 0) {
+            loadPosts();
+            return;
+        }
+
+        // 여러 태그를 쉼표로 구분해서 전송하거나, 백엔드 API에 맞게 수정
         const searchData = {
-            content: tag,
+            content: tags.join(','), // 또는 tags 배열 자체를 전송
             page: 1,
             size: 15,
             mode: 'TAG'
@@ -102,7 +108,7 @@ export default function Forum() {
     // 검색어 변경 시 검색 실행
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            if (selectedTag) {
+            if (selectedTags.length > 0) {
                 // 태그가 선택된 상태에서는 텍스트 검색 안함
                 return;
             }
@@ -110,26 +116,31 @@ export default function Forum() {
         }, 300); // 300ms 디바운스
 
         return () => clearTimeout(timeoutId);
-    }, [search, selectedTag]);
+    }, [search, selectedTags]);
 
-    // 태그 선택 처리
+    // 태그 선택/해제 처리
     const handleTagSelect = (tag) => {
-        if (tag === selectedTag) {
-            // 같은 태그 클릭 시 선택 해제
-            setSelectedTag('');
-            setSearch('');
-            loadPosts();
-        } else if (tag === '') {
+        if (tag === '') {
             // 전체 선택
-            setSelectedTag('');
+            setSelectedTags([]);
             setSearch('');
             loadPosts();
         } else {
-            // 새 태그 선택
-            setSelectedTag(tag);
+            const newSelectedTags = selectedTags.includes(tag)
+                ? selectedTags.filter(t => t !== tag) // 이미 선택된 태그면 제거
+                : [...selectedTags, tag]; // 새 태그면 추가
+
+            setSelectedTags(newSelectedTags);
             setSearch('');
-            searchByTag(tag);
+            searchByTags(newSelectedTags);
         }
+    };
+
+    // 선택된 태그들 초기화
+    const clearSelectedTags = () => {
+        setSelectedTags([]);
+        setSearch('');
+        loadPosts();
     };
 
     return (
@@ -150,16 +161,42 @@ export default function Forum() {
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="제목 또는 내용으로 검색"
-                    disabled={selectedTag !== ''} // 태그가 선택되면 검색창 비활성화
+                    placeholder={selectedTags.length > 0 ? "태그 필터가 활성화되어 있습니다" : "제목 또는 내용으로 검색"}
+                    disabled={selectedTags.length > 0} // 태그가 선택되면 검색창 비활성화
                 />
                 <button onClick={() => navigate('/forum/write')}>작성</button>
             </div>
 
+            {/* 선택된 태그 표시 및 관리 */}
+            {selectedTags.length > 0 && (
+                <div className="selected-tags-container">
+                    <span>선택된 태그:</span>
+                    {selectedTags.map((tag) => (
+                        <span key={tag} className="selected-tag">
+                            #{tag}
+                            <button
+                                className="remove-tag-btn"
+                                onClick={() => handleTagSelect(tag)}
+                                title={`${tag} 태그 제거`}
+                            >
+                                ×
+                            </button>
+                        </span>
+                    ))}
+                    <button
+                        className="clear-tags-btn"
+                        onClick={clearSelectedTags}
+                        title="모든 태그 선택 해제"
+                    >
+                        전체 해제
+                    </button>
+                </div>
+            )}
+
             {/* 태그 필터 버튼들 */}
             <div className="tag-filter-container">
                 <button
-                    className={`tag-filter-btn ${selectedTag === '' ? 'active' : ''}`}
+                    className={`tag-filter-btn ${selectedTags.length === 0 ? 'active' : ''}`}
                     onClick={() => handleTagSelect('')}
                 >
                     전체
@@ -167,7 +204,7 @@ export default function Forum() {
                 {availableTags.map((tag) => (
                     <button
                         key={tag}
-                        className={`tag-filter-btn ${selectedTag === tag ? 'active' : ''}`}
+                        className={`tag-filter-btn ${selectedTags.includes(tag) ? 'active' : ''}`}
                         onClick={() => handleTagSelect(tag)}
                     >
                         #{tag}
@@ -178,7 +215,10 @@ export default function Forum() {
             <ul className="forum-posts">
                 {posts.length === 0 ? (
                     <li className="empty">
-                        {selectedTag ? `"${selectedTag}" 태그의 게시물이 없습니다.` : '게시물이 없습니다.'}
+                        {selectedTags.length > 0
+                            ? `선택된 태그 (${selectedTags.map(tag => `#${tag}`).join(', ')})의 게시물이 없습니다.`
+                            : '게시물이 없습니다.'
+                        }
                     </li>
                 ) : (
                     posts.map((post) => (
@@ -197,24 +237,24 @@ export default function Forum() {
                                             ? post.tags.map((tag, index) => (
                                                 <span
                                                     key={index}
-                                                    className={`tag ${selectedTag === tag ? 'tag-selected' : ''}`}
+                                                    className={`tag ${selectedTags.includes(tag) ? 'tag-selected' : ''}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleTagSelect(tag);
                                                     }}
                                                 >
-                            #{tag}
-                          </span>
+                                                    #{tag}
+                                                </span>
                                             ))
                                             : <span
-                                                className={`tag ${selectedTag === post.tags ? 'tag-selected' : ''}`}
+                                                className={`tag ${selectedTags.includes(post.tags) ? 'tag-selected' : ''}`}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleTagSelect(post.tags);
                                                 }}
                                             >
-                          #{post.tags}
-                        </span>
+                                                #{post.tags}
+                                            </span>
                                         }
                                     </div>
                                 )}
