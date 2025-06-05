@@ -15,7 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -77,8 +79,25 @@ public class ForumServiceImpl implements ForumService {
                 PageRequest.of(page - 1, size, Sort.by("createdAt").descending())));
     }
 
-    public ForumResultDTO findByTag(String tag, int page, int size) {
-        return new ForumResultDTO(forumRepository.findByTagName(tag,
-                PageRequest.of(page - 1, size, Sort.by("f.createdAt").descending())));
+    public ForumResultDTO findByTag(String tags, int page, int size) {
+//        return new ForumResultDTO(forumRepository.findByTagName(tag,
+//                PageRequest.of(page - 1, size, Sort.by("f.createdAt").descending())));
+        List<String> tagList = Arrays.stream(tags.split(","))
+                .map(String::trim)
+                .filter(tag -> !tag.isEmpty()) // 빈 문자열 제거
+                .collect(Collectors.toList());
+
+        if (tagList.isEmpty()) {
+            // 태그가 없으면 전체 목록 반환
+            return findAll(page, size);
+        } else if (tagList.size() == 1) {
+            // 단일 태그는 기존 방식 사용
+            return new ForumResultDTO(forumRepository.findByTagName(tagList.get(0),
+                    PageRequest.of(page - 1, size, Sort.by("f.createdAt").descending())));
+        } else {
+            // 다중 태그는 새로운 메서드 사용 (OR 조건)
+            return new ForumResultDTO(forumRepository.findByTagNames(tagList,
+                    PageRequest.of(page - 1, size, Sort.by("f.createdAt").descending())));
+        }
     }
 }
