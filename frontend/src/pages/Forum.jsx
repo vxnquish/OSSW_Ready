@@ -161,7 +161,7 @@ export default function Forum() {
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="제목 또는 내용으로 검색"
+                    placeholder={selectedTags.length > 0 ? "태그 필터가 활성화되어 있습니다" : "제목 또는 내용으로 검색"}
                     disabled={selectedTags.length > 0} // 태그가 선택되면 검색창 비활성화
                 />
                 <button onClick={() => navigate('/forum/write')}>작성</button>
@@ -170,13 +170,14 @@ export default function Forum() {
             {/* 선택된 태그 표시 및 관리 */}
             {selectedTags.length > 0 && (
                 <div className="selected-tags-container">
-                    <span>선택된 태그: </span>
+                    <span>선택된 태그:</span>
                     {selectedTags.map((tag) => (
                         <span key={tag} className="selected-tag">
                             #{tag}
                             <button
                                 className="remove-tag-btn"
                                 onClick={() => handleTagSelect(tag)}
+                                title={`${tag} 태그 제거`}
                             >
                                 ×
                             </button>
@@ -185,6 +186,7 @@ export default function Forum() {
                     <button
                         className="clear-tags-btn"
                         onClick={clearSelectedTags}
+                        title="모든 태그 선택 해제"
                     >
                         전체 해제
                     </button>
@@ -214,7 +216,7 @@ export default function Forum() {
                 {posts.length === 0 ? (
                     <li className="empty">
                         {selectedTags.length > 0
-                            ? `선택된 태그의 게시물이 없습니다.`
+                            ? `선택된 태그 (${selectedTags.map(tag => `#${tag}`).join(', ')})의 게시물이 없습니다.`
                             : '게시물이 없습니다.'
                         }
                     </li>
