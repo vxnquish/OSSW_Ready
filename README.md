@@ -74,7 +74,7 @@ Lovemap의 핵심 기능은 다음과 같은 흐름으로 작동합니다:
 | **프론트엔드** | React + Vite | 빠른 개발과 HMR을 위한 환경 구성 |
 |  | JavaScript (JSX), CSS | UI/UX 구성 |
 | **백엔드** | Java 17 + Spring Boot | REST API 서버 구축축|
-|  | Gadle | Java 빌드 및 의존성 관리 |
+|  | Gradle | Java 빌드 및 의존성 관리 |
 | **API 연동** | Together.ai | GPT 기반 무료 AI API |
 |  | Kakao | 카카오맵과 연동, 장소 검색 + 장소 기반 추천 |
 | **HTTP 통신** | OkHttp, Gson | 외부 API 요청 및 JSON 파싱 |
