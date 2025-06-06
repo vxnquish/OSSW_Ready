@@ -5,6 +5,7 @@ import com.rureadyimready.backend.controller.dto.ForumResultDTO;
 import com.rureadyimready.backend.domain.ForumContent;
 import com.rureadyimready.backend.domain.ForumTags;
 import com.rureadyimready.backend.domain.Tags;
+import com.rureadyimready.backend.repository.CommentRepository;
 import com.rureadyimready.backend.repository.ForumRepository;
 import com.rureadyimready.backend.repository.TagsRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class ForumServiceImpl implements ForumService {
     private final ForumRepository forumRepository;
     private final TagsRepository tagsRepository;
+    private final CommentRepository commentRepository; // 댓글 리포지토리 추가
 
     @Transactional(readOnly = false)
     public ForumContent save(ForumContentDTO data) {
@@ -55,8 +57,26 @@ public class ForumServiceImpl implements ForumService {
     }
 
     public ForumContent findById(long id) {
-        return forumRepository.findByIdWithTags(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, id + "번 게시글이 없습니다."));
+
+            // 실패 시 기본 메서드 사용
+            return forumRepository.findByIdWithTags(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, id + "번 게시글이 없습니다."));
+    }
+
+// 댓글 수를 포함한 게시글 조회 메서드 추가
+    public ForumContentDTO findByIdWithCommentCount(long id) {
+        ForumContent forumContent = findById(id);
+        ForumContentDTO dto = ForumContentDTO.fromEntity(forumContent);
+
+        // 댓글 수를 별도로 조회하여 설정
+        try {
+            Long commentCount = commentRepository.countByForumContentId(id);
+            dto.setCommentCount(commentCount);
+        } catch (Exception e) {
+            dto.setCommentCount(0L);
+        }
+
+        return dto;
     }
 
     public ForumResultDTO findAll(int page, int size) {
@@ -80,8 +100,6 @@ public class ForumServiceImpl implements ForumService {
     }
 
     public ForumResultDTO findByTag(String tags, int page, int size) {
-//        return new ForumResultDTO(forumRepository.findByTagName(tag,
-//                PageRequest.of(page - 1, size, Sort.by("f.createdAt").descending())));
         List<String> tagList = Arrays.stream(tags.split(","))
                 .map(String::trim)
                 .filter(tag -> !tag.isEmpty()) // 빈 문자열 제거
@@ -99,5 +117,13 @@ public class ForumServiceImpl implements ForumService {
             return new ForumResultDTO(forumRepository.findByTagNames(tagList,
                     PageRequest.of(page - 1, size, Sort.by("f.createdAt").descending())));
         }
+    }
+
+    @Transactional(readOnly = false)
+    public void deleteById(long id) {
+        ForumContent forumContent = forumRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, id + "번 게시글이 없습니다."));
+
+        forumRepository.delete(forumContent);
     }
 }
