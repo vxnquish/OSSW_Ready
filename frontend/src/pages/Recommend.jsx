@@ -201,6 +201,13 @@ export default function Recommend() {
       map: mapRef.current,
     });
 
+    // 마커에 장소 정보 저장 (제거 시 식별용)
+    marker.placeInfo = {
+      place_name: place.place_name,
+      x: place.x,
+      y: place.y
+    };
+
     // 선택된 마커 클릭 시 정보 표시
     window.kakao.maps.event.addListener(marker, 'click', () => {
       infowindowRef.current.setContent(
@@ -261,6 +268,7 @@ export default function Recommend() {
       }
       setCheckedItems(prev => new Set([...prev, index]));
     } else {
+      // 선택 해제 시 장소와 마커 제거
       setSelectedPlaces(prev => prev.filter(p =>
           `${p.place_name}_${p.x}_${p.y}` !== placeId
       ));
@@ -270,16 +278,17 @@ export default function Recommend() {
         return newSet;
       });
 
-      // 해당 선택된 마커 제거
-      const markerIndex = selectedMarkersRef.current.findIndex(marker => {
-        const markerPos = marker.getPosition();
-        return markerPos.getLat() === parseFloat(place.y) &&
-            markerPos.getLng() === parseFloat(place.x);
+      // 해당 선택된 마커 제거 (더 정확한 방법)
+      const markerToRemove = selectedMarkersRef.current.find(marker => {
+        return marker.placeInfo &&
+            marker.placeInfo.place_name === place.place_name &&
+            marker.placeInfo.x === place.x &&
+            marker.placeInfo.y === place.y;
       });
 
-      if (markerIndex !== -1) {
-        selectedMarkersRef.current[markerIndex].setMap(null);
-        selectedMarkersRef.current.splice(markerIndex, 1);
+      if (markerToRemove) {
+        markerToRemove.setMap(null);
+        selectedMarkersRef.current = selectedMarkersRef.current.filter(marker => marker !== markerToRemove);
       }
     }
   };
