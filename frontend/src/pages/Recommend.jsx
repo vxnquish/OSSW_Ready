@@ -1,4 +1,3 @@
-// src/pages/Recommend.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import './Recommend.css';
 import mapIcon from '../../icons/lovemap.png';
@@ -24,6 +23,10 @@ export default function Recommend() {
   const [selectedPlaces, setSelectedPlaces] = useState([]);
   // 경로 폴리라인 참조용
   const routeLineRef = useRef(null);
+  // 선택된 장소 마커들 참조용
+  const selectedMarkersRef = useRef([]);
+  // 체크박스 상태 관리
+  const [checkedItems, setCheckedItems] = useState(new Set());
 
   // 분위기별 키워드 매핑
   const moodKeywords = {
@@ -183,6 +186,41 @@ export default function Recommend() {
     markersRef.current.push(marker);
   };
 
+  // 선택된 장소용 특별한 마커 생성
+  const addSelectedMarker = (place) => {
+    const position = new window.kakao.maps.LatLng(place.y, place.x);
+
+    // 하트 모양의 핑크색 마커 이미지
+    const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png';
+    const imageSize = new window.kakao.maps.Size(24, 35);
+    const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
+
+    const marker = new window.kakao.maps.Marker({
+      position,
+      image: markerImage,
+      map: mapRef.current,
+    });
+
+    // 선택된 마커 클릭 시 정보 표시
+    window.kakao.maps.event.addListener(marker, 'click', () => {
+      infowindowRef.current.setContent(
+          `<div style="padding:10px;font-size:13px;color:#FF6B6B;font-weight:bold;">
+            ❤️ ${place.place_name}
+          </div>`
+      );
+      infowindowRef.current.open(mapRef.current, marker);
+    });
+
+    selectedMarkersRef.current.push(marker);
+    return marker;
+  };
+
+  // 선택된 마커들 삭제
+  const clearSelectedMarkers = () => {
+    selectedMarkersRef.current.forEach(marker => marker.setMap(null));
+    selectedMarkersRef.current = [];
+  };
+
   // 기존 마커 삭제
   const clearMarkers = () => {
     markersRef.current.forEach((m) => m.setMap(null));
@@ -207,11 +245,52 @@ export default function Recommend() {
   };
 
   // 장소 선택/해제 핸들러
-  const handlePlaceSelect = (place, isSelected) => {
+  const handlePlaceSelect = (place, isSelected, index) => {
+    // 고유 ID 생성 (장소명 + 좌표로 중복 방지)
+    const placeId = `${place.place_name}_${place.x}_${place.y}`;
+
     if (isSelected) {
-      setSelectedPlaces(prev => [...prev, place]);
+      // 이미 선택된 장소인지 확인 (다른 검색 결과에서 같은 장소 선택 방지)
+      const alreadySelected = selectedPlaces.some(p =>
+          `${p.place_name}_${p.x}_${p.y}` === placeId
+      );
+
+      if (!alreadySelected) {
+        setSelectedPlaces(prev => [...prev, place]);
+        addSelectedMarker(place);
+      }
+      setCheckedItems(prev => new Set([...prev, index]));
     } else {
-      setSelectedPlaces(prev => prev.filter(p => p.id !== place.id));
+      setSelectedPlaces(prev => prev.filter(p =>
+          `${p.place_name}_${p.x}_${p.y}` !== placeId
+      ));
+      setCheckedItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(index);
+        return newSet;
+      });
+
+      // 해당 선택된 마커 제거
+      const markerIndex = selectedMarkersRef.current.findIndex(marker => {
+        const markerPos = marker.getPosition();
+        return markerPos.getLat() === parseFloat(place.y) &&
+            markerPos.getLng() === parseFloat(place.x);
+      });
+
+      if (markerIndex !== -1) {
+        selectedMarkersRef.current[markerIndex].setMap(null);
+        selectedMarkersRef.current.splice(markerIndex, 1);
+      }
+    }
+  };
+
+  // 모든 선택 상태 초기화
+  const clearAllSelections = () => {
+    setSelectedPlaces([]);
+    clearSelectedMarkers();
+    if (routeLineRef.current) {
+      routeLineRef.current.setMap(null);
+      routeLineRef.current = null;
     }
   };
 
@@ -232,7 +311,7 @@ export default function Recommend() {
     // 폴리라인 생성
     const routeLine = new window.kakao.maps.Polyline({
       path: routeCoords,
-      strokeWeight: 3,
+      strokeWeight: 4,
       strokeColor: '#FF6B6B',
       strokeOpacity: 0.8,
       strokeStyle: 'solid'
@@ -249,11 +328,7 @@ export default function Recommend() {
 
   // 경로 초기화
   const clearRoute = () => {
-    if (routeLineRef.current) {
-      routeLineRef.current.setMap(null);
-      routeLineRef.current = null;
-    }
-    setSelectedPlaces([]);
+    clearAllSelections();
   };
 
   // 선택된 장소가 변경될 때마다 경로 업데이트
@@ -286,33 +361,47 @@ export default function Recommend() {
               <span style={{ float: 'right' }}>총 {places.length}개</span>
             </div>
             <ul id="placesList">
-              {places.map((place, i) => (
-                  <li key={i} className={`item marker_${i + 1}`}>
-                    <input
-                        type="checkbox"
-                        id={`place_${i}`}
-                        onChange={(e) => handlePlaceSelect(place, e.target.checked)}
-                        style={{ marginRight: '8px' }}
-                    />
-                    <span className="markerbg"></span>
-                    <div className="info">
-                      <h5>
-                        <label htmlFor={`place_${i}`} style={{ cursor: 'pointer' }}>
-                          {place.place_name}
-                        </label>
-                      </h5>
-                      <span>
+              {places.map((place, i) => {
+                // 현재 장소가 이미 선택되어 있는지 확인
+                const placeId = `${place.place_name}_${place.x}_${place.y}`;
+                const isAlreadySelected = selectedPlaces.some(p =>
+                    `${p.place_name}_${p.x}_${p.y}` === placeId
+                );
+
+                return (
+                    <li key={i} className={`item marker_${i + 1}`}>
+                      <label className="heart-checkbox" htmlFor={`place_${i}`}>
+                        <input
+                            type="checkbox"
+                            id={`place_${i}`}
+                            checked={isAlreadySelected}
+                            onChange={(e) => handlePlaceSelect(place, e.target.checked, i)}
+                        />
+                        <div className="heart">
+                          {isAlreadySelected ? '❤️' : '🤍'}
+                        </div>
+                      </label>
+                      <span className="markerbg"></span>
+                      <div className="info">
+                        <h5>
+                          <label htmlFor={`place_${i}`} style={{ cursor: 'pointer' }}>
+                            {place.place_name}
+                            {isAlreadySelected && <span style={{ color: '#FF6B6B', marginLeft: '5px' }}>✨</span>}
+                          </label>
+                        </h5>
+                        <span>
                     {place.road_address_name || place.address_name}
                   </span>
-                      {place.phone && <span className="tel">{place.phone}</span>}
-                      {place.distance && (
-                          <span style={{ fontSize: '11px', color: '#999' }}>
+                        {place.phone && <span className="tel">{place.phone}</span>}
+                        {place.distance && (
+                            <span style={{ fontSize: '11px', color: '#999' }}>
                       {Math.round(place.distance)}m
                     </span>
-                      )}
-                    </div>
-                  </li>
-              ))}
+                        )}
+                      </div>
+                    </li>
+                );
+              })}
             </ul>
             <div id="pagination"></div>
           </div>
@@ -346,47 +435,129 @@ export default function Recommend() {
                 </select>
                 <button type="submit">검색하기</button>
               </form>
+            </div>
 
-              {/* 선택된 장소 및 경로 관리 */}
-              {selectedPlaces.length > 0 && (
-                  <div style={{
-                    marginTop: '15px',
-                    padding: '10px',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: '4px',
-                    fontSize: '12px'
+            {/* 선택된 장소 및 경로 관리 */}
+            <div style={{
+              marginTop: '20px',
+              flex: '1',
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: '0'
+            }}>
+              <div style={{
+                padding: '16px',
+                backgroundColor: 'rgba(248, 113, 182, 0.1)',
+                borderRadius: '12px',
+                border: '1px solid rgba(248, 113, 182, 0.2)',
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%'
+              }}>
+                <div style={{
+                  marginBottom: '12px',
+                  fontWeight: '700',
+                  color: '#1a202c',
+                  fontSize: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <span>💕 나의 데이트 코스</span>
+                  <span style={{
+                    fontSize: '12px',
+                    color: '#f472b6',
+                    fontWeight: '600'
                   }}>
-                    <div style={{ marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>
-                      선택된 장소 ({selectedPlaces.length}개)
+                      {selectedPlaces.length}개 장소
+                    </span>
+                </div>
+
+                {selectedPlaces.length === 0 ? (
+                    <div style={{
+                      textAlign: 'center',
+                      color: '#9ca3af',
+                      fontSize: '13px',
+                      padding: '40px 20px',
+                      flex: '1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'column'
+                    }}>
+                      <div style={{ fontSize: '24px', marginBottom: '8px' }}>📍</div>
+                      <div>장소를 선택하여</div>
+                      <div>데이트 코스를 만들어보세요!</div>
                     </div>
-                    <div style={{ marginBottom: '8px', color: '#666' }}>
-                      {selectedPlaces.map((place, idx) => (
-                          <div key={idx} style={{ marginBottom: '2px' }}>
-                            {idx + 1}. {place.place_name}
+                ) : (
+                    <>
+                      <div style={{
+                        flex: '1',
+                        overflowY: 'auto',
+                        marginBottom: '12px',
+                        paddingRight: '4px'
+                      }} className="selected-places-scroll">
+                        {selectedPlaces.map((place, idx) => (
+                            <div key={idx} style={{
+                              marginBottom: '8px',
+                              padding: '8px 12px',
+                              backgroundColor: '#fff',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(248, 113, 182, 0.1)',
+                              fontSize: '12px'
+                            }}>
+                              <div style={{
+                                fontWeight: '600',
+                                color: '#f472b6',
+                                marginBottom: '4px'
+                              }}>
+                                {idx + 1}. {place.place_name}
+                              </div>
+                              <div style={{
+                                color: '#6b7280',
+                                fontSize: '11px',
+                                lineHeight: '1.3'
+                              }}>
+                                {place.road_address_name || place.address_name}
+                              </div>
+                            </div>
+                        ))}
+                      </div>
+
+                      {selectedPlaces.length >= 2 && (
+                          <div style={{
+                            color: '#f472b6',
+                            fontSize: '11px',
+                            marginBottom: '12px',
+                            textAlign: 'center',
+                            fontWeight: '600'
+                          }}>
+                            ✨ 경로가 지도에 표시되었습니다
                           </div>
-                      ))}
-                    </div>
-                    {selectedPlaces.length >= 2 && (
-                        <div style={{ color: '#FF6B6B', fontSize: '11px', marginBottom: '8px' }}>
-                          경로가 지도에 표시됩니다
-                        </div>
-                    )}
-                    <button
-                        onClick={clearRoute}
-                        style={{
-                          padding: '4px 8px',
-                          fontSize: '11px',
-                          backgroundColor: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '3px',
-                          cursor: 'pointer'
-                        }}
-                    >
-                      경로 초기화
-                    </button>
-                  </div>
-              )}
+                      )}
+
+                      <button
+                          onClick={clearRoute}
+                          style={{
+                            padding: '10px 16px',
+                            fontSize: '12px',
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            transition: 'all 0.2s ease',
+                            width: '100%'
+                          }}
+                          onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
+                          onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+                      >
+                        🗑️ 모든 선택 초기화
+                      </button>
+                    </>
+                )}
+              </div>
             </div>
           </div>
         </div>

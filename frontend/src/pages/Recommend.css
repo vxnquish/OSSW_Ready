@@ -27,8 +27,8 @@
   background: #0a0118;
   border-radius: 32px;
   box-shadow:
-    0 40px 80px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          0 40px 80px rgba(0, 0, 0, 0.5),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
   font-family: 'Outfit', 'Inter', sans-serif;
   text-align: center;
   position: relative;
@@ -44,9 +44,9 @@
   width: 200%;
   height: 200%;
   background:
-    radial-gradient(circle at 30% 30%, rgba(102, 126, 234, 0.4) 0%, transparent 40%),
-    radial-gradient(circle at 70% 70%, rgba(236, 72, 153, 0.3) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.2) 0%, transparent 50%);
+          radial-gradient(circle at 30% 30%, rgba(102, 126, 234, 0.4) 0%, transparent 40%),
+          radial-gradient(circle at 70% 70%, rgba(236, 72, 153, 0.3) 0%, transparent 40%),
+          radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.2) 0%, transparent 50%);
   animation: galaxyRotate 30s linear infinite;
   z-index: 0;
 }
@@ -71,12 +71,12 @@
   margin-bottom: 1rem;
   letter-spacing: -0.03em;
   background: linear-gradient(
-    135deg,
-    #fff 0%,
-    #f472b6 25%,
-    #a78bfa 50%,
-    #60a5fa 75%,
-    #fff 100%
+          135deg,
+          #fff 0%,
+          #f472b6 25%,
+          #a78bfa 50%,
+          #60a5fa 75%,
+          #fff 100%
   );
   background-size: 200% 200%;
   -webkit-background-clip: text;
@@ -104,8 +104,8 @@
   border-radius: 28px;
   padding: 24px;
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          0 20px 60px rgba(0, 0, 0, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
   transition: all 0.3s ease;
@@ -113,8 +113,8 @@
 
 .map_wrap:hover {
   box-shadow:
-    0 30px 80px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+          0 30px 80px rgba(0, 0, 0, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
 }
 
@@ -129,16 +129,16 @@
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+          0 16px 48px rgba(0, 0, 0, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.5);
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 #results_wrap:hover {
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+          0 20px 60px rgba(0, 0, 0, 0.15),
+          inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 /* Results Header */
@@ -163,8 +163,8 @@
   border-radius: 20px;
   overflow: hidden;
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.2),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+          0 20px 60px rgba(0, 0, 0, 0.2),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   position: relative;
 }
@@ -184,8 +184,8 @@
 #map:hover {
   transform: scale(1.01);
   box-shadow:
-    0 30px 80px rgba(0, 0, 0, 0.3),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+          0 30px 80px rgba(0, 0, 0, 0.3),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 /* ——— 사이드 메뉴 ——— */
@@ -197,8 +197,8 @@
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+          0 16px 48px rgba(0, 0, 0, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.5);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -207,18 +207,19 @@
 
 #menu_wrap:hover {
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+          0 20px 60px rgba(0, 0, 0, 0.15),
+          inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 /* ——— 검색 옵션 영역 ——— */
 #menu_wrap .option {
-  padding: 32px;
+  padding: 24px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
   text-align: left;
   position: relative;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 /* Floating particles effect */
@@ -255,7 +256,7 @@
 #menu_wrap .option form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   position: relative;
   z-index: 1;
 }
@@ -264,7 +265,7 @@
   font-weight: 600;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   display: block;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -273,7 +274,7 @@
 #menu_wrap .option input,
 #menu_wrap .option select {
   width: 100%;
-  padding: 16px 20px;
+  padding: 14px 18px;
   border: none;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.95);
@@ -281,8 +282,8 @@
   font-weight: 500;
   color: #1a1a1a;
   box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+          0 4px 12px rgba(0, 0, 0, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -292,9 +293,9 @@
   background: #fff;
   transform: translateY(-2px);
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.15),
-    0 0 0 3px rgba(255, 255, 255, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
+          0 8px 24px rgba(0, 0, 0, 0.15),
+          0 0 0 3px rgba(255, 255, 255, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 #menu_wrap .option input::placeholder {
@@ -305,18 +306,18 @@
 /* Modern Button */
 #menu_wrap .option button {
   margin-top: 8px;
-  padding: 18px 32px;
+  padding: 16px 28px;
   background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
   color: #fff;
   border: none;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
   box-shadow:
-    0 8px 24px rgba(236, 72, 153, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          0 8px 24px rgba(236, 72, 153, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -339,8 +340,8 @@
 #menu_wrap .option button:hover {
   transform: translateY(-3px);
   box-shadow:
-    0 12px 32px rgba(236, 72, 153, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          0 12px 32px rgba(236, 72, 153, 0.5),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 #menu_wrap .option button:hover::before {
@@ -410,8 +411,8 @@
   background: linear-gradient(145deg, #f8f4ff 0%, #f0e6ff 100%);
   transform: translateY(-2px) translateX(4px);
   box-shadow:
-    0 12px 32px rgba(102, 126, 234, 0.15),
-    0 4px 12px rgba(0, 0, 0, 0.05);
+          0 12px 32px rgba(102, 126, 234, 0.15),
+          0 4px 12px rgba(0, 0, 0, 0.05);
   border-color: rgba(102, 126, 234, 0.2);
 }
 
@@ -535,8 +536,8 @@
   font-size: 14px;
   border: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+          0 4px 12px rgba(0, 0, 0, 0.05),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -547,8 +548,8 @@
   color: #fff;
   transform: translateY(-2px) scale(1.1);
   box-shadow:
-    0 8px 24px rgba(102, 126, 234, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          0 8px 24px rgba(102, 126, 234, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
   border-color: transparent;
 }
 
@@ -558,10 +559,191 @@
   cursor: default;
   font-weight: 700;
   box-shadow:
-    0 6px 20px rgba(102, 126, 234, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          0 6px 20px rgba(102, 126, 234, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transform: scale(1.1);
   border-color: transparent;
+}
+
+/* ——— 커스텀 체크박스 ——— */
+.custom-checkbox {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+.custom-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.custom-checkbox .checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #fff 0%, #fdf2f8 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.custom-checkbox input[type="checkbox"]:checked + .checkmark {
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  border-color: #f472b6;
+  transform: scale(1.1);
+  box-shadow:
+          0 4px 12px rgba(244, 114, 182, 0.4),
+          0 0 0 2px rgba(244, 114, 182, 0.2);
+}
+
+.custom-checkbox .checkmark::after {
+  content: '';
+  position: absolute;
+  display: none;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  top: 2px;
+  left: 6px;
+}
+
+.custom-checkbox input[type="checkbox"]:checked + .checkmark::after {
+  display: block;
+  animation: checkFadeIn 0.3s ease-in-out;
+}
+
+.custom-checkbox:hover .checkmark {
+  border-color: #f472b6;
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(244, 114, 182, 0.2);
+}
+
+.custom-checkbox input[type="checkbox"]:checked:hover + .checkmark {
+  transform: scale(1.15);
+  box-shadow:
+          0 6px 16px rgba(244, 114, 182, 0.5),
+          0 0 0 3px rgba(244, 114, 182, 0.3);
+}
+
+@keyframes checkFadeIn {
+  0% {
+    opacity: 0;
+    transform: rotate(45deg) scale(0.5);
+  }
+  50% {
+    opacity: 0.7;
+    transform: rotate(45deg) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+/* ——— 하트 스타일 체크박스 ——— */
+.heart-checkbox {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.heart-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.heart-checkbox .heart {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #d1d5db;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.heart-checkbox input[type="checkbox"]:checked + .heart {
+  color: #f472b6;
+  transform: scale(1.2);
+  animation: heartBeat 0.6s ease-in-out;
+}
+
+.heart-checkbox:hover .heart {
+  transform: scale(1.1);
+  color: #f472b6;
+}
+
+.heart-checkbox input[type="checkbox"]:checked:hover + .heart {
+  transform: scale(1.3);
+}
+
+@keyframes heartBeat {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.4);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  75% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1.2);
+  }
+}
+.selected-places-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(248, 113, 182, 0.5) transparent;
+}
+
+.selected-places-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.selected-places-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.selected-places-scroll::-webkit-scrollbar-thumb {
+  background: rgba(248, 113, 182, 0.5);
+  border-radius: 3px;
+}
+
+.selected-places-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(248, 113, 182, 0.7);
 }
 
 /* ——— 반응형 ——— */
@@ -610,7 +792,7 @@
   }
 
   #menu_wrap .option {
-    padding: 24px;
+    padding: 20px;
   }
 
   #placesList .item {
@@ -643,5 +825,3 @@
     transition-duration: 0.01ms !important;
   }
 }
-
-
