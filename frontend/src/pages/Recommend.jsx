@@ -28,6 +28,22 @@ export default function Recommend() {
   // 체크박스 상태 관리
   const [checkedItems, setCheckedItems] = useState(new Set());
 
+  // 공유 모달 관련 상태
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareForm, setShareForm] = useState({
+    title: '',
+    content: '',
+    tags: []
+  });
+  const [isSharing, setIsSharing] = useState(false);
+
+  // 태그 관련 상태
+  const [availableTags, setAvailableTags] = useState([]);
+  // useState 초기값 수정
+  const [selectedTags, setSelectedTags] = useState([]); // 빈 배열로 시작
+  const [customTag, setCustomTag] = useState('');
+  const [loadingTags, setLoadingTags] = useState(false);
+
   // 분위기별 키워드 매핑
   const moodKeywords = {
     '로맨틱': ['로맨틱', '데이트', '분위기', '커플', '낭만', '뷰맛집', '야경맛집', '감성'],
@@ -48,6 +64,37 @@ export default function Recommend() {
     infowindowRef.current = new window.kakao.maps.InfoWindow({ zIndex: 1 });
     searchPlaces();
   }, []);
+
+  // 태그 목록 로드
+  useEffect(() => {
+    if (showShareModal) {
+      loadAvailableTags();
+    }
+  }, [showShareModal]);
+
+  // 태그 목록 API 호출
+  // 기존 함수를 이 코드로 교체
+  const loadAvailableTags = async () => {
+    setLoadingTags(true);
+    try {
+      const response = await fetch('http://localhost:8080/forum/tags');
+      if (response.ok) {
+        const tags = await response.json();
+        console.log('DB에서 로드된 태그들:', tags);
+        setAvailableTags(tags);
+      } else {
+        console.error('태그 목록 로드 실패:', response.status);
+        setAvailableTags([]);
+        alert('태그 목록을 불러오는데 실패했습니다. 관리자에게 문의해주세요.');
+      }
+    } catch (error) {
+      console.error('태그 로드 중 오류:', error);
+      setAvailableTags([]);
+      alert('태그 목록을 불러오는데 실패했습니다. 네트워크 연결을 확인해주세요.');
+    } finally {
+      setLoadingTags(false);
+    }
+  };
 
   // 키워드와 분위기를 조합해 장소 검색 실행
   const searchPlaces = () => {
@@ -212,8 +259,8 @@ export default function Recommend() {
     window.kakao.maps.event.addListener(marker, 'click', () => {
       infowindowRef.current.setContent(
           `<div style="padding:10px;font-size:13px;color:#FF6B6B;font-weight:bold;">
-            ❤️ ${place.place_name}
-          </div>`
+          ❤️ ${place.place_name}
+        </div>`
       );
       infowindowRef.current.open(mapRef.current, marker);
     });
@@ -350,6 +397,171 @@ export default function Recommend() {
     if (e.key === 'Enter') searchPlaces();
   };
 
+  // 데이트 코스 공유 관련 함수들
+  // openShareModal 함수에서 초기 태그 설정 부분을 이렇게 수정
+  const openShareModal = () => {
+    if (selectedPlaces.length === 0) {
+      alert('공유할 데이트 코스를 먼저 선택해주세요!');
+      return;
+    }
+
+    const courseTitle = `${keyword} 데이트 코스 (${selectedPlaces.length}곳)`;
+    const courseContent = generateCourseContent();
+
+    // 🔧 수정된 초기 태그 설정 - DB에 있는 태그들만 사용
+    let initialTags = [];
+
+    // '데이트코스' 태그가 DB에 있으면 추가
+    if (availableTags.includes('데이트코스')) {
+      initialTags.push('데이트코스');
+    }
+
+    // 선택된 분위기가 DB에 있으면 추가
+    if (mood && availableTags.includes(mood)) {
+      initialTags.push(mood);
+    }
+
+    setShareForm({
+      title: courseTitle,
+      content: courseContent,
+      tags: initialTags
+    });
+    setSelectedTags(initialTags);
+    setShowShareModal(true);
+  };
+
+  const generateCourseContent = () => {
+    let content = `✨ ${keyword}에서의 특별한 데이트 코스를 공유합니다!\n\n`;
+
+    if (mood) {
+      content += `🎯 분위기: ${mood}\n\n`;
+    }
+
+    content += `📍 코스 순서:\n`;
+    selectedPlaces.forEach((place, index) => {
+      content += `${index + 1}. ${place.place_name}\n`;
+      content += `   📍 ${place.road_address_name || place.address_name}\n`;
+      if (place.phone) {
+        content += `   📞 ${place.phone}\n`;
+      }
+      content += `\n`;
+    });
+
+    content += `\n💕 총 ${selectedPlaces.length}개의 장소로 구성된 데이트 코스입니다.\n`;
+    content += `즐거운 데이트 되세요! 🥰`;
+
+    return content;
+  };
+
+  const handleShareFormChange = (field, value) => {
+    setShareForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // 태그 선택/해제 핸들러
+  const toggleTag = (tag) => {
+    setSelectedTags(prev => {
+      const newTags = prev.includes(tag)
+          ? prev.filter(t => t !== tag)
+          : [...prev, tag];
+
+      // shareForm도 함께 업데이트
+      setShareForm(prevForm => ({
+        ...prevForm,
+        tags: newTags
+      }));
+
+      return newTags;
+    });
+  };
+
+  // 커스텀 태그 추가
+  const addCustomTag = () => {
+    if (customTag.trim() && !selectedTags.includes(customTag.trim())) {
+      const newTag = customTag.trim();
+      setSelectedTags(prev => [...prev, newTag]);
+      setShareForm(prevForm => ({
+        ...prevForm,
+        tags: [...prevForm.tags, newTag]
+      }));
+      setCustomTag('');
+    }
+  };
+
+  // 커스텀 태그 입력 엔터 처리
+  const handleCustomTagKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addCustomTag();
+    }
+  };
+
+  // 분위기에 따른 추천 태그
+// 기존 함수를 이 코드로 교체
+  const getRecommendedTags = () => {
+    // DB 태그 중에서 분위기에 맞는 것들만 필터링
+    const moodMapping = {
+      '로맨틱': ['데이트코스', '로맨틱', '야경', '뷰맛집', '분위기'],
+      '아늑한': ['데이트코스', '아늑한', '카페', '힐링', '조용한'],
+      '야경': ['데이트코스', '야경', '뷰맛집', '로맨틱', '분위기']
+    };
+
+    const recommendedTagNames = moodMapping[mood] || ['데이트코스'];
+
+    // DB에 실제로 존재하는 태그들만 필터링해서 반환
+    return availableTags.filter(tag => recommendedTagNames.includes(tag));
+  };
+
+  const submitDateCourse = async () => {
+    if (!shareForm.title.trim()) {
+      alert('제목을 입력해주세요!');
+      return;
+    }
+
+    if (!shareForm.content.trim()) {
+      alert('내용을 입력해주세요!');
+      return;
+    }
+
+    setIsSharing(true);
+
+    try {
+      const response = await fetch('http://localhost:8080/forum/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: shareForm.title,
+          content: shareForm.content,
+          tags: selectedTags // 선택된 태그들 사용
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert('🎉 데이트 코스가 성공적으로 공유되었습니다!');
+        setShowShareModal(false);
+      } else {
+        throw new Error(`서버 오류: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('공유 중 오류:', error);
+      alert('공유 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const closeShareModal = () => {
+    setShowShareModal(false);
+    setShareForm({ title: '', content: '', tags: [] });
+    setSelectedTags([]); // 빈 배열로 초기화
+    setCustomTag('');
+  };
+
   return (
       <div className="recommend-container">
         <h2>
@@ -399,13 +611,13 @@ export default function Recommend() {
                           </label>
                         </h5>
                         <span>
-                    {place.road_address_name || place.address_name}
-                  </span>
+                      {place.road_address_name || place.address_name}
+                    </span>
                         {place.phone && <span className="tel">{place.phone}</span>}
                         {place.distance && (
                             <span style={{ fontSize: '11px', color: '#999' }}>
-                      {Math.round(place.distance)}m
-                    </span>
+                        {Math.round(place.distance)}m
+                      </span>
                         )}
                       </div>
                     </li>
@@ -421,29 +633,28 @@ export default function Recommend() {
           {/* 오른쪽: 검색 폼 */}
           <div id="menu_wrap" className="bg_white">
             <div className="option">
-              <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    searchPlaces();
-                  }}
-              >
-                <label>키워드:</label>
-                <input
-                    type="text"
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="검색어를 입력하세요 (예: 홍대 데이트)"
-                />
-                <label>분위기:</label>
-                <select value={mood} onChange={(e) => setMood(e.target.value)}>
-                  <option value="">전체</option>
-                  <option value="로맨틱">로맨틱</option>
-                  <option value="아늑한">아늑한</option>
-                  <option value="야경">야경</option>
-                </select>
-                <button type="submit">검색하기</button>
-              </form>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div>
+                  <label>키워드:</label>
+                  <input
+                      type="text"
+                      value={keyword}
+                      onChange={(e) => setKeyword(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="검색어를 입력하세요 (예: 홍대 데이트)"
+                  />
+                </div>
+                <div>
+                  <label>분위기:</label>
+                  <select value={mood} onChange={(e) => setMood(e.target.value)}>
+                    <option value="">전체</option>
+                    <option value="로맨틱">로맨틱</option>
+                    <option value="아늑한">아늑한</option>
+                    <option value="야경">야경</option>
+                  </select>
+                </div>
+                <button type="button" onClick={searchPlaces}>검색하기</button>
+              </div>
             </div>
 
             {/* 선택된 장소 및 경로 관리 */}
@@ -478,8 +689,8 @@ export default function Recommend() {
                     color: '#f472b6',
                     fontWeight: '600'
                   }}>
-                      {selectedPlaces.length}개 장소
-                    </span>
+                  {selectedPlaces.length}개 장소
+                </span>
                 </div>
 
                 {selectedPlaces.length === 0 ? (
@@ -545,31 +756,166 @@ export default function Recommend() {
                           </div>
                       )}
 
-                      <button
-                          onClick={clearRoute}
-                          style={{
-                            padding: '10px 16px',
-                            fontSize: '12px',
-                            backgroundColor: '#ef4444',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: '600',
-                            transition: 'all 0.2s ease',
-                            width: '100%'
-                          }}
-                          onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
-                          onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
-                      >
-                        🗑️ 모든 선택 초기화
-                      </button>
+                      {/* 버튼 그룹 */}
+                      <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px'
+                      }}>
+                        {/* 공유하기 버튼 */}
+                        <button
+                            onClick={openShareModal}
+                            className="share-course-button"
+                        >
+                          📝 게시판에 공유하기
+                        </button>
+
+                        {/* 초기화 버튼 */}
+                        <button
+                            onClick={clearRoute}
+                            style={{
+                              padding: '10px 16px',
+                              fontSize: '12px',
+                              backgroundColor: '#ef4444',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              fontWeight: '600',
+                              transition: 'all 0.2s ease',
+                              width: '100%'
+                            }}
+                            onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
+                            onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+                        >
+                          🗑️ 모든 선택 초기화
+                        </button>
+                      </div>
                     </>
                 )}
               </div>
             </div>
           </div>
         </div>
+
+        {/* 공유하기 모달 */}
+        {showShareModal && (
+            <div className="share-modal-overlay" onClick={closeShareModal}>
+              <div className="share-modal" onClick={(e) => e.stopPropagation()}>
+                <button
+                    className="share-modal-close"
+                    onClick={closeShareModal}
+                >
+                  ✕
+                </button>
+
+                <div className="share-modal-header">
+                  <h2 className="share-modal-title">데이트 코스 공유하기</h2>
+                  <p className="share-modal-subtitle">다른 커플들과 특별한 데이트 코스를 공유해보세요!</p>
+                </div>
+
+                {/* 선택된 코스 미리보기 */}
+                <div className="course-preview">
+                  <div className="course-preview-title">
+                    <span>📍</span>
+                    <span>선택된 데이트 코스 ({selectedPlaces.length}곳)</span>
+                  </div>
+                  {selectedPlaces.map((place, idx) => (
+                      <div key={idx} className="course-place-item">
+                        <div className="course-place-name">
+                          {idx + 1}. {place.place_name}
+                        </div>
+                        <div className="course-place-address">
+                          {place.road_address_name || place.address_name}
+                        </div>
+                      </div>
+                  ))}
+                </div>
+
+                <div className="share-form">
+                  <div className="share-form-group">
+                    <label className="share-form-label">게시글 제목</label>
+                    <input
+                        type="text"
+                        className="share-form-input"
+                        value={shareForm.title}
+                        onChange={(e) => handleShareFormChange('title', e.target.value)}
+                        placeholder="데이트 코스 제목을 입력해주세요"
+                    />
+                  </div>
+
+                  <div className="share-form-group">
+                    <label className="share-form-label">상세 설명</label>
+                    <textarea
+                        className="share-form-textarea"
+                        value={shareForm.content}
+                        onChange={(e) => handleShareFormChange('content', e.target.value)}
+                        placeholder="데이트 코스에 대한 상세한 설명을 추가해주세요..."
+                    />
+                  </div>
+
+                  {/* 태그 선택 섹션 */}
+                  <div className="tag-section">
+                    <label className="share-form-label">
+                      태그 선택
+                      {loadingTags && <span className="tag-loading"> (로딩 중...)</span>}
+                    </label>
+
+                    {/* 전체 태그 선택 */}
+                    <div className="tag-container">
+                      {availableTags.map(tag => (
+                          <button
+                              key={tag}
+                              type="button"
+                              onClick={() => toggleTag(tag)}
+                              className={`tag-button ${selectedTags.includes(tag) ? 'tag-selected' : ''}`}
+                          >
+                            {selectedTags.includes(tag) ? '✓ ' : ''}{tag}
+                          </button>
+                      ))}
+                    </div>
+
+                    {/* 선택된 태그 미리보기 */}
+                    {selectedTags.length > 0 && (
+                        <div className="selected-tags-preview">
+                          <div className="selected-tags-label">
+                            선택된 태그 ({selectedTags.length}개):
+                          </div>
+                          <div className="selected-tags-display">
+                            {selectedTags.join(', ')}
+                          </div>
+                        </div>
+                    )}
+                  </div>
+
+                  <div className="share-button-group">
+                    <button
+                        type="button"
+                        className="share-button share-button-cancel"
+                        onClick={closeShareModal}
+                    >
+                      취소
+                    </button>
+                    <button
+                        type="button"
+                        className="share-button share-button-submit"
+                        onClick={submitDateCourse}
+                        disabled={isSharing}
+                    >
+                      {isSharing ? (
+                          <>
+                            <span className="loading-spinner"></span>
+                            공유 중...
+                          </>
+                      ) : (
+                          '🎉 공유하기'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        )}
       </div>
   );
 }

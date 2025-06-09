@@ -5,7 +5,7 @@ import './Home.css';
 const Home = () => {
   return (
     <div className="home-container">
-      <h1 className="home-title">💘 RUREADYIMREADY</h1>
+      <h1 className="home-title">💘lovemap</h1>
       <p className="home-subtitle">연애에 어려움을 겪는 사람들을 위한 종합 연애 플랫폼</p>
 
       <div className="home-buttons">
