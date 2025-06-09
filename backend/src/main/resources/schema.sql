@@ -21,3 +21,11 @@ CREATE TABLE forum_tags (
   FOREIGN KEY (forum_content_id) REFERENCES forum_content(id),
   FOREIGN KEY (tag_id) REFERENCES tags(id)
 );
+
+CREATE TABLE comment (
+                         id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                         content TEXT NOT NULL,
+                         anonymous_name VARCHAR(50),
+                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                         forum_content_id BIGINT
+);
