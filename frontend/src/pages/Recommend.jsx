@@ -1,34 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Recommend.css';
 import mapIcon from '../../icons/lovemap.png';
+import { askPlaceRecommendation } from '../api/flask'; // AI 추천 API 함수 import
+import AiIcon from '../../icons/ai.png';
+import placeIcon from "../../icons/place.png";
 
 export default function Recommend() {
-  // 검색 키워드 상태 (기본값: '홍대 데이트')
-  const [keyword, setKeyword] = useState('홍대 데이트');
-  // 분위기 필터 상태
+  // 기존 상태들
+  const [keyword, setKeyword] = useState('홍대');
   const [mood, setMood] = useState('');
-  // 검색 결과 장소 데이터 배열 상태
   const [places, setPlaces] = useState([]);
-  // 페이지네이션 정보 상태
   const [pagination, setPagination] = useState(null);
-  // 카카오 지도 객체 참조용
   const mapRef = useRef(null);
-  // 카카오 장소 검색 서비스 참조용
   const placesServiceRef = useRef(null);
-  // 인포윈도우 참조용
   const infowindowRef = useRef(null);
-  // 생성된 마커들 참조용
   const markersRef = useRef([]);
-  // 선택된 장소들 상태
   const [selectedPlaces, setSelectedPlaces] = useState([]);
-  // 경로 폴리라인 참조용
   const routeLineRef = useRef(null);
-  // 선택된 장소 마커들 참조용
   const selectedMarkersRef = useRef([]);
-  // 체크박스 상태 관리
   const [checkedItems, setCheckedItems] = useState(new Set());
 
-  // 공유 모달 관련 상태
+  // 공유 모달 관련 상태들
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareForm, setShareForm] = useState({
     title: '',
@@ -37,21 +29,54 @@ export default function Recommend() {
   });
   const [isSharing, setIsSharing] = useState(false);
 
-  // 태그 관련 상태
+  // 태그 관련 상태들
   const [availableTags, setAvailableTags] = useState([]);
-  // useState 초기값 수정
-  const [selectedTags, setSelectedTags] = useState([]); // 빈 배열로 시작
+  const [selectedTags, setSelectedTags] = useState([]);
   const [customTag, setCustomTag] = useState('');
   const [loadingTags, setLoadingTags] = useState(false);
 
-  // 분위기별 키워드 매핑
+  // ✨ 새로 추가: AI 추천 관련 상태들
+  const [aiRecommendation, setAiRecommendation] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showAiResult, setShowAiResult] = useState(false);
+
+  // 기존 분위기별 키워드 매핑
   const moodKeywords = {
     '로맨틱': ['로맨틱', '데이트', '분위기', '커플', '낭만', '뷰맛집', '야경맛집', '감성'],
     '아늑한': ['아늑한', '조용한', '프라이빗', '힐링', '카페', '북카페', '소규모', '인테리어'],
     '야경': ['야경', '뷰', '루프탑', '스카이', '전망', '야간', '밤', '뷰맛집', '옥상']
   };
 
-  // 컴포넌트 마운트 시 지도 초기화 및 첫 검색 실행
+  // ✨ 새로 추가: AI 장소 추천 함수
+  const handleAiRecommendation = async () => {
+    if (!keyword.trim()) {
+      alert('키워드를 입력해주세요!');
+      return;
+    }
+
+    const selectedMood = mood || '로맨틱'; // 기본값 설정
+    setAiLoading(true);
+    setShowAiResult(false);
+
+    try {
+      const result = await askPlaceRecommendation(keyword, selectedMood);
+      setAiRecommendation(result.response);
+      setShowAiResult(true);
+    } catch (err) {
+      console.error('AI 추천 오류:', err);
+      alert('AI 추천을 받아오는 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  // ✨ 새로 추가: AI 추천 결과 닫기
+  const closeAiResult = () => {
+    setShowAiResult(false);
+    setAiRecommendation('');
+  };
+
+  // 기존 컴포넌트 마운트 시 지도 초기화 및 첫 검색 실행
   useEffect(() => {
     if (!window.kakao) return;
     const container = document.getElementById('map');
@@ -65,15 +90,14 @@ export default function Recommend() {
     searchPlaces();
   }, []);
 
-  // 태그 목록 로드
+  // 기존 태그 목록 로드
   useEffect(() => {
     if (showShareModal) {
       loadAvailableTags();
     }
   }, [showShareModal]);
 
-  // 태그 목록 API 호출
-  // 기존 함수를 이 코드로 교체
+  // 기존 함수들 유지...
   const loadAvailableTags = async () => {
     setLoadingTags(true);
     try {
@@ -96,18 +120,15 @@ export default function Recommend() {
     }
   };
 
-  // 키워드와 분위기를 조합해 장소 검색 실행
   const searchPlaces = () => {
     if (!keyword.trim()) {
       alert('키워드를 입력해주세요!');
       return;
     }
 
-    // 분위기가 선택된 경우 관련 키워드들로 여러 번 검색
     if (mood && moodKeywords[mood]) {
       searchWithMoodKeywords();
     } else {
-      // 기본 검색
       placesServiceRef.current.keywordSearch(
           keyword,
           placesSearchCB,
@@ -116,15 +137,13 @@ export default function Recommend() {
     }
   };
 
-  // 분위기별 키워드로 검색
   const searchWithMoodKeywords = () => {
     const baseKeyword = keyword;
     const moodWords = moodKeywords[mood];
     let allResults = [];
     let searchCount = 0;
-    const totalSearches = Math.min(3, moodWords.length); // 최대 3개의 키워드 조합으로 검색
+    const totalSearches = Math.min(3, moodWords.length);
 
-    // 여러 키워드 조합으로 검색
     for (let i = 0; i < totalSearches; i++) {
       const searchQuery = `${baseKeyword} ${moodWords[i]}`;
 
@@ -134,7 +153,6 @@ export default function Recommend() {
             searchCount++;
 
             if (status === window.kakao.maps.services.Status.OK) {
-              // 중복 제거를 위해 place_name과 address_name 기준으로 필터링
               data.forEach(place => {
                 const isDuplicate = allResults.some(existing =>
                     existing.place_name === place.place_name &&
@@ -146,17 +164,13 @@ export default function Recommend() {
               });
             }
 
-            // 모든 검색이 완료되면 결과 표시
             if (searchCount === totalSearches) {
               if (allResults.length > 0) {
-                // 거리순으로 정렬 (가까운 순)
                 allResults.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
-                // 최대 15개로 제한
                 const limitedResults = allResults.slice(0, 15);
 
                 setPlaces(limitedResults);
                 displayPlaces(limitedResults);
-                // 페이지네이션은 단순화 (분위기 검색 시에는 페이지네이션 비활성화)
                 document.getElementById('pagination').innerHTML = '';
               } else {
                 alert(`"${mood}" 분위기의 "${keyword}" 검색 결과가 없습니다. 다른 키워드나 분위기를 시도해보세요.`);
@@ -170,7 +184,6 @@ export default function Recommend() {
     }
   };
 
-  // 검색 콜백 함수
   const placesSearchCB = (data, status, paginationData) => {
     if (status === window.kakao.maps.services.Status.OK) {
       setPlaces(data);
@@ -187,7 +200,6 @@ export default function Recommend() {
     }
   };
 
-  // 지도에 마커 표시
   const displayPlaces = (places) => {
     clearMarkers();
     const bounds = new window.kakao.maps.LatLngBounds();
@@ -199,7 +211,6 @@ export default function Recommend() {
     mapRef.current.setBounds(bounds);
   };
 
-  // 단일 마커 생성
   const addMarker = (position, idx, title) => {
     const imageSrc =
         'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_number_blue.png';
@@ -233,11 +244,8 @@ export default function Recommend() {
     markersRef.current.push(marker);
   };
 
-  // 선택된 장소용 특별한 마커 생성
   const addSelectedMarker = (place) => {
     const position = new window.kakao.maps.LatLng(place.y, place.x);
-
-    // 하트 모양의 핑크색 마커 이미지
     const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png';
     const imageSize = new window.kakao.maps.Size(24, 35);
     const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
@@ -248,14 +256,12 @@ export default function Recommend() {
       map: mapRef.current,
     });
 
-    // 마커에 장소 정보 저장 (제거 시 식별용)
     marker.placeInfo = {
       place_name: place.place_name,
       x: place.x,
       y: place.y
     };
 
-    // 선택된 마커 클릭 시 정보 표시
     window.kakao.maps.event.addListener(marker, 'click', () => {
       infowindowRef.current.setContent(
           `<div style="padding:10px;font-size:13px;color:#FF6B6B;font-weight:bold;">
@@ -269,19 +275,16 @@ export default function Recommend() {
     return marker;
   };
 
-  // 선택된 마커들 삭제
   const clearSelectedMarkers = () => {
     selectedMarkersRef.current.forEach(marker => marker.setMap(null));
     selectedMarkersRef.current = [];
   };
 
-  // 기존 마커 삭제
   const clearMarkers = () => {
     markersRef.current.forEach((m) => m.setMap(null));
     markersRef.current = [];
   };
 
-  // 페이지네이션 UI 생성
   const displayPagination = (p) => {
     const container = document.getElementById('pagination');
     container.innerHTML = '';
@@ -298,13 +301,10 @@ export default function Recommend() {
     }
   };
 
-  // 장소 선택/해제 핸들러
   const handlePlaceSelect = (place, isSelected, index) => {
-    // 고유 ID 생성 (장소명 + 좌표로 중복 방지)
     const placeId = `${place.place_name}_${place.x}_${place.y}`;
 
     if (isSelected) {
-      // 이미 선택된 장소인지 확인 (다른 검색 결과에서 같은 장소 선택 방지)
       const alreadySelected = selectedPlaces.some(p =>
           `${p.place_name}_${p.x}_${p.y}` === placeId
       );
@@ -315,7 +315,6 @@ export default function Recommend() {
       }
       setCheckedItems(prev => new Set([...prev, index]));
     } else {
-      // 선택 해제 시 장소와 마커 제거
       setSelectedPlaces(prev => prev.filter(p =>
           `${p.place_name}_${p.x}_${p.y}` !== placeId
       ));
@@ -325,7 +324,6 @@ export default function Recommend() {
         return newSet;
       });
 
-      // 해당 선택된 마커 제거 (더 정확한 방법)
       const markerToRemove = selectedMarkersRef.current.find(marker => {
         return marker.placeInfo &&
             marker.placeInfo.place_name === place.place_name &&
@@ -340,7 +338,6 @@ export default function Recommend() {
     }
   };
 
-  // 모든 선택 상태 초기화
   const clearAllSelections = () => {
     setSelectedPlaces([]);
     clearSelectedMarkers();
@@ -350,21 +347,17 @@ export default function Recommend() {
     }
   };
 
-  // 선택된 장소들로 경로 표시
   const displayRoute = () => {
-    // 기존 경로 삭제
     if (routeLineRef.current) {
       routeLineRef.current.setMap(null);
     }
 
     if (selectedPlaces.length < 2) return;
 
-    // 선택된 장소들의 좌표로 경로 생성
     const routeCoords = selectedPlaces.map(place =>
         new window.kakao.maps.LatLng(place.y, place.x)
     );
 
-    // 폴리라인 생성
     const routeLine = new window.kakao.maps.Polyline({
       path: routeCoords,
       strokeWeight: 4,
@@ -376,29 +369,24 @@ export default function Recommend() {
     routeLine.setMap(mapRef.current);
     routeLineRef.current = routeLine;
 
-    // 선택된 장소들이 모두 보이도록 지도 범위 조정
     const bounds = new window.kakao.maps.LatLngBounds();
     routeCoords.forEach(coord => bounds.extend(coord));
     mapRef.current.setBounds(bounds);
   };
 
-  // 경로 초기화
   const clearRoute = () => {
     clearAllSelections();
   };
 
-  // 선택된 장소가 변경될 때마다 경로 업데이트
   useEffect(() => {
     displayRoute();
   }, [selectedPlaces]);
 
-  // 엔터 키로 검색
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') searchPlaces();
   };
 
-  // 데이트 코스 공유 관련 함수들
-  // openShareModal 함수에서 초기 태그 설정 부분을 이렇게 수정
+  // 기존 공유 관련 함수들...
   const openShareModal = () => {
     if (selectedPlaces.length === 0) {
       alert('공유할 데이트 코스를 먼저 선택해주세요!');
@@ -408,15 +396,12 @@ export default function Recommend() {
     const courseTitle = `${keyword} 데이트 코스 (${selectedPlaces.length}곳)`;
     const courseContent = generateCourseContent();
 
-    // 🔧 수정된 초기 태그 설정 - DB에 있는 태그들만 사용
     let initialTags = [];
 
-    // '데이트코스' 태그가 DB에 있으면 추가
     if (availableTags.includes('데이트코스')) {
       initialTags.push('데이트코스');
     }
 
-    // 선택된 분위기가 DB에 있으면 추가
     if (mood && availableTags.includes(mood)) {
       initialTags.push(mood);
     }
@@ -460,14 +445,12 @@ export default function Recommend() {
     }));
   };
 
-  // 태그 선택/해제 핸들러
   const toggleTag = (tag) => {
     setSelectedTags(prev => {
       const newTags = prev.includes(tag)
           ? prev.filter(t => t !== tag)
           : [...prev, tag];
 
-      // shareForm도 함께 업데이트
       setShareForm(prevForm => ({
         ...prevForm,
         tags: newTags
@@ -477,7 +460,6 @@ export default function Recommend() {
     });
   };
 
-  // 커스텀 태그 추가
   const addCustomTag = () => {
     if (customTag.trim() && !selectedTags.includes(customTag.trim())) {
       const newTag = customTag.trim();
@@ -490,7 +472,6 @@ export default function Recommend() {
     }
   };
 
-  // 커스텀 태그 입력 엔터 처리
   const handleCustomTagKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -498,10 +479,7 @@ export default function Recommend() {
     }
   };
 
-  // 분위기에 따른 추천 태그
-// 기존 함수를 이 코드로 교체
   const getRecommendedTags = () => {
-    // DB 태그 중에서 분위기에 맞는 것들만 필터링
     const moodMapping = {
       '로맨틱': ['데이트코스', '로맨틱', '야경', '뷰맛집', '분위기'],
       '아늑한': ['데이트코스', '아늑한', '카페', '힐링', '조용한'],
@@ -509,8 +487,6 @@ export default function Recommend() {
     };
 
     const recommendedTagNames = moodMapping[mood] || ['데이트코스'];
-
-    // DB에 실제로 존재하는 태그들만 필터링해서 반환
     return availableTags.filter(tag => recommendedTagNames.includes(tag));
   };
 
@@ -536,7 +512,7 @@ export default function Recommend() {
         body: JSON.stringify({
           title: shareForm.title,
           content: shareForm.content,
-          tags: selectedTags // 선택된 태그들 사용
+          tags: selectedTags
         })
       });
 
@@ -558,7 +534,7 @@ export default function Recommend() {
   const closeShareModal = () => {
     setShowShareModal(false);
     setShareForm({ title: '', content: '', tags: [] });
-    setSelectedTags([]); // 빈 배열로 초기화
+    setSelectedTags([]);
     setCustomTag('');
   };
 
@@ -583,7 +559,6 @@ export default function Recommend() {
             </div>
             <ul id="placesList">
               {places.map((place, i) => {
-                // 현재 장소가 이미 선택되어 있는지 확인
                 const placeId = `${place.place_name}_${place.x}_${place.y}`;
                 const isAlreadySelected = selectedPlaces.some(p =>
                     `${p.place_name}_${p.x}_${p.y}` === placeId
@@ -641,7 +616,7 @@ export default function Recommend() {
                       value={keyword}
                       onChange={(e) => setKeyword(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="검색어를 입력하세요 (예: 홍대 데이트)"
+                      placeholder="검색어를 입력하세요 (예: 홍대)"
                   />
                 </div>
                 <div>
@@ -756,13 +731,11 @@ export default function Recommend() {
                           </div>
                       )}
 
-                      {/* 버튼 그룹 */}
                       <div style={{
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '8px'
                       }}>
-                        {/* 공유하기 버튼 */}
                         <button
                             onClick={openShareModal}
                             className="share-course-button"
@@ -770,7 +743,6 @@ export default function Recommend() {
                           📝 게시판에 공유하기
                         </button>
 
-                        {/* 초기화 버튼 */}
                         <button
                             onClick={clearRoute}
                             style={{
@@ -798,7 +770,329 @@ export default function Recommend() {
           </div>
         </div>
 
-        {/* 공유하기 모달 */}
+        {/* ✨ 새로 추가: AI 추천 섹션 (지도 아래) */}
+        <div
+            className="ai-section"
+            style={{
+              margin: '2rem 0',
+              padding: '3rem 2rem',
+              background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+              borderRadius: '24px',
+              border: '1px solid rgba(16, 185, 129, 0.2)',
+              textAlign: 'center',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+          {/* 배경 장식 */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)',
+            pointerEvents: 'none'
+          }}></div>
+
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h3 style={{
+              fontSize: '2rem',
+              fontWeight: '800',
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              marginBottom: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.75rem',
+              letterSpacing: '-0.02em'
+            }}>
+              <img
+                  src={AiIcon}
+                  alt="ai 아이콘"
+                  style={{
+                    width: '1.4em',
+                    verticalAlign: 'middle',
+                    marginRight: '0.4rem'
+                  }}
+              /> AI 블로그 검색 장소 추천
+            </h3>
+
+            <p style={{
+              color: '#4b5563',
+              fontSize: '1.1rem',
+              marginBottom: '2rem',
+              lineHeight: '1.6',
+              fontWeight: '500'
+            }}>
+              AI가 블로그와 리뷰를 검색해서 <span style={{
+              color: '#10b981',
+              fontWeight: '700',
+              background: 'rgba(16, 185, 129, 0.1)',
+              padding: '2px 8px',
+              borderRadius: '6px'
+            }}>"{keyword}"</span>
+              {mood && <> <span style={{
+                color: '#3b82f6',
+                fontWeight: '700',
+                background: 'rgba(59, 130, 246, 0.1)',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                marginLeft: '4px'
+              }}>"{mood}"</span> 분위기</>}의 완벽한 데이트 장소를 추천해드려요!
+            </p>
+
+            {/* AI 추천 버튼 - 큰 사이즈 */}
+            <button
+                className="ai-button"
+                onClick={handleAiRecommendation}
+                disabled={aiLoading}
+                style={{
+                  background: aiLoading ?
+                      'linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%)' :
+                      'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: 'white',
+                  border: '2px solid transparent',
+                  borderRadius: '20px',
+                  padding: '24px 48px',
+                  fontSize: '1.3rem',
+                  fontWeight: '800',
+                  cursor: aiLoading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px',
+                  boxShadow: aiLoading ?
+                      '0 8px 25px rgba(156, 163, 175, 0.3)' :
+                      '0 12px 35px rgba(16, 185, 129, 0.4)',
+                  transform: aiLoading ? 'none' : 'translateY(0)',
+                  margin: '0 auto',
+                  minWidth: '320px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  letterSpacing: '-0.01em'
+                }}
+                onMouseOver={(e) => {
+                  if (!aiLoading) {
+                    e.target.style.transform = 'translateY(-4px) scale(1.03)';
+                    e.target.style.boxShadow = '0 16px 45px rgba(16, 185, 129, 0.5)';
+                    e.target.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!aiLoading) {
+                    e.target.style.transform = 'translateY(0) scale(1)';
+                    e.target.style.boxShadow = '0 12px 35px rgba(16, 185, 129, 0.4)';
+                    e.target.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                  }
+                }}
+            >
+              {/* 버튼 배경 효과 */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: '-100%',
+                width: '100%',
+                height: '100%',
+                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
+                transition: 'left 0.6s ease',
+                pointerEvents: 'none'
+              }}></div>
+
+              {aiLoading ? (
+                  <>
+                    <div style={{
+                      width: '24px',
+                      height: '24px',
+                      border: '3px solid rgba(255, 255, 255, 0.3)',
+                      borderTop: '3px solid white',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    AI가 블로그를 검색 중입니다...
+                  </>
+              ) : (
+                  <>
+                    <span style={{ fontSize: '1.4rem' }}>🤖</span>
+                    AI 장소 추천받기
+                  </>
+              )}
+            </button>
+          </div>
+
+          {/* AI 추천 결과 표시 영역 */}
+          {showAiResult && (
+              <div
+                  className="ai-result-enter ai-result"
+                  style={{
+                    marginTop: '3rem',
+                    padding: '2.5rem',
+                    background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+                    borderRadius: '20px',
+                    border: '2px solid rgba(16, 185, 129, 0.2)',
+                    position: 'relative',
+                    textAlign: 'left',
+                    boxShadow: '0 12px 40px rgba(16, 185, 129, 0.15)',
+                    overflow: 'hidden'
+                  }}>
+                {/* 배경 장식 */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.05) 0%, transparent 50%)',
+                  pointerEvents: 'none'
+                }}></div>
+
+                <button
+                    onClick={closeAiResult}
+                    style={{
+                      position: 'absolute',
+                      top: '20px',
+                      right: '20px',
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      border: '2px solid rgba(239, 68, 68, 0.2)',
+                      borderRadius: '50%',
+                      width: '40px',
+                      height: '40px',
+                      fontSize: '18px',
+                      cursor: 'pointer',
+                      color: '#ef4444',
+                      transition: 'all 0.3s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: '700',
+                      zIndex: 2
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.background = 'rgba(239, 68, 68, 0.2)';
+                      e.target.style.transform = 'scale(1.1)';
+                      e.target.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.background = 'rgba(239, 68, 68, 0.1)';
+                      e.target.style.transform = 'scale(1)';
+                      e.target.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                    }}
+                >
+                  ✕
+                </button>
+
+                <div style={{
+                  marginBottom: '2rem',
+                  fontWeight: '800',
+                  fontSize: '1.4rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  position: 'relative',
+                  zIndex: 1,
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>
+                  <span style={{ fontSize: '1.6rem' }}></span>
+                  <span><img
+                      src={placeIcon}
+                      alt="ai 아이콘"
+                      style={{
+                        width: '1.4em',
+                        verticalAlign: 'middle',
+                        marginRight: '0.4rem'
+                      }}
+                  />AI 추천 결과</span>
+                </div>
+
+                <div style={{
+                  fontSize: '1.05rem',
+                  lineHeight: '1.8',
+                  color: '#374151',
+                  maxHeight: '450px',
+                  overflowY: 'auto',
+                  whiteSpace: 'pre-line',
+                  padding: '1.5rem',
+                  background: '#ffffff',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(16, 185, 129, 0.1)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                  position: 'relative',
+                  zIndex: 1
+                }}>
+                  {aiRecommendation}
+                </div>
+
+                <div style={{
+                  marginTop: '2rem',
+                  padding: '1.25rem',
+                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%)',
+                  borderRadius: '16px',
+                  fontSize: '1rem',
+                  color: '#059669',
+                  textAlign: 'center',
+                  fontWeight: '600',
+                  border: '1px solid rgba(16, 185, 129, 0.2)',
+                  position: 'relative',
+                  zIndex: 1
+                }}>
+                  💡 AI가 실시간으로 블로그와 리뷰를 검색해서 추천한 결과입니다
+                </div>
+              </div>
+          )}
+        </div>
+
+        {/* CSS 애니메이션 추가 */}
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          .ai-result-enter {
+            animation: fadeInUp 0.5s ease-out;
+          }
+          
+          @media (max-width: 768px) {
+            .ai-section h3 {
+              font-size: 1.5rem !important;
+            }
+            
+            .ai-section p {
+              font-size: 1rem !important;
+            }
+            
+            .ai-button {
+              padding: 20px 32px !important;
+              font-size: 1.1rem !important;
+              min-width: 280px !important;
+            }
+            
+            .ai-result {
+              padding: 2rem !important;
+              margin-top: 2rem !important;
+            }
+          }
+        `}</style>
+
+        {/* 공유하기 모달... */}
         {showShareModal && (
             <div className="share-modal-overlay" onClick={closeShareModal}>
               <div className="share-modal" onClick={(e) => e.stopPropagation()}>
@@ -814,7 +1108,6 @@ export default function Recommend() {
                   <p className="share-modal-subtitle">다른 커플들과 특별한 데이트 코스를 공유해보세요!</p>
                 </div>
 
-                {/* 선택된 코스 미리보기 */}
                 <div className="course-preview">
                   <div className="course-preview-title">
                     <span>📍</span>
@@ -854,14 +1147,12 @@ export default function Recommend() {
                     />
                   </div>
 
-                  {/* 태그 선택 섹션 */}
                   <div className="tag-section">
                     <label className="share-form-label">
                       태그 선택
                       {loadingTags && <span className="tag-loading"> (로딩 중...)</span>}
                     </label>
 
-                    {/* 전체 태그 선택 */}
                     <div className="tag-container">
                       {availableTags.map(tag => (
                           <button
@@ -875,7 +1166,6 @@ export default function Recommend() {
                       ))}
                     </div>
 
-                    {/* 선택된 태그 미리보기 */}
                     {selectedTags.length > 0 && (
                         <div className="selected-tags-preview">
                           <div className="selected-tags-label">

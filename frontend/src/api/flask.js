@@ -13,3 +13,15 @@ export async function askLoveAdvice(message) {
   });
   return await res.json();
 }
+
+export async function askPlaceRecommendation(location, preference) {
+  const res = await fetch(`${BASE_URL}/api/place-recommend`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      location: location,
+      preference: preference
+    })
+  });
+  return await res.json();
+}
