@@ -43,4 +43,5 @@ public interface ForumRepository extends JpaRepository<ForumContent, Long> {
             "where t.value IN :tags " +
             "group by f.id, f.title, f.createdAt")
     Page<ForumTitleDTO> findByTagNames(@Param("tags") List<String> tags, Pageable pageable);
+
 }

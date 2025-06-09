@@ -38,4 +38,10 @@ public class ForumContent {
             fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference // ✅ 양방향 직렬화용
     private List<ForumTags> forumTags;
+    // 댓글과의 관계 추가
+    @Setter
+    @OneToMany(mappedBy = "forumContent", cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Comment> comments;
 }
