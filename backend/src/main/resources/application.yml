@@ -8,6 +8,6 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update # 혹은 validate
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

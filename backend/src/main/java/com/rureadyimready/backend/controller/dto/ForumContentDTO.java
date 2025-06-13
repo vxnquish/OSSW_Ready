@@ -23,11 +23,6 @@ public class ForumContentDTO {
     private LocalDateTime createdAt; // 생성일시 추가
     private Long commentCount; // 댓글 수 추가
 
-//    public ForumContent toEntity() {
-//        return ForumContent.builder()
-//                .title(title)
-//                .content(content).build();
-//    }
     public ForumContent toEntity() {
         return ForumContent.builder()
                 .title(title != null ? title : "")
