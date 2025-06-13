@@ -45,7 +45,7 @@ Lovemap의 핵심 기능은 다음과 같은 흐름으로 작동합니다:
 
 ### 🏠 초기 화면 흐름도
 
-   <img src="image-1.png" alt="홈화면" width="300"/>
+   <img src="https://github.com/user-attachments/assets/81a431f3-675d-4466-bc12-6344a35ce28f" alt="홈화면" width="300"/>
 
 #### 1. 🧍 **사용자**: `lovemap` 웹사이트 접속  
    
@@ -70,9 +70,9 @@ Lovemap의 연애 상담 기능은 다음과 같은 흐름으로 작동합니다
 
 ---
 
-<img src="image-2.png" alt="홈화면 ⮕ 연애상담 페이지" width="200"/>
+<img src="https://github.com/user-attachments/assets/161cf5f9-1fb1-442f-82a3-08a57d78f723" alt="홈화면 ⮕ 연애상담 페이지" width="200"/>
 ⮕
-<img src="image-3.png" alt="연애 상담 페이지" width="300"/>
+<img src="https://github.com/user-attachments/assets/0694d2e4-f74c-4de5-a922-bc2f1b4d9eee" alt="연애 상담 페이지" width="300"/>
 
 ---
 
@@ -81,9 +81,9 @@ Lovemap의 연애 상담 기능은 다음과 같은 흐름으로 작동합니다
    └ 예: `"고백하고 싶은데 타이밍을 못 잡겠어요"`  
 ⮕ "상담하기" 버튼 클릭
 
-<img src="image-4.png" alt="연애 고민 입력 후 상담하기 버튼 클릭" width="200"/>
+<img src="https://github.com/user-attachments/assets/51b28e4e-7abb-4469-8c6c-0d5422018c1b" alt="연애 고민 입력 후 상담하기 버튼 클릭" width="200"/>
 
-<img src="image-5.png" alt="AI 답변 생성중" width="200"/>
+<img src="https://github.com/user-attachments/assets/88454c30-6222-4dc0-b8cf-6dacc556f848" alt="AI 답변 생성중" width="200"/>
 
 
 #### 2. 💻 프론트엔드: 입력값을 백엔드로 전송
@@ -110,7 +110,7 @@ Lovemap의 연애 상담 기능은 다음과 같은 흐름으로 작동합니다
 
    ⮕ 기존 채팅 인터페이스에 새로운 응답 추가
 
-   <img src="image-6.png" alt="AI 상담 결과" width="300"/>
+   <img src="https://github.com/user-attachments/assets/1b321119-8246-4a0f-a979-5fdc66650768" alt="AI 상담 결과" width="300"/>
 
 
 
@@ -118,11 +118,11 @@ Lovemap의 연애 상담 기능은 다음과 같은 흐름으로 작동합니다
    └ 사용자는 상담 결과를 **익명 게시판**에 공유 가능  
    ⮕ 다른 사용자들과 고민을 나눌 수 있도록 연결됨
 
-   <img src="image-7.png" alt="상담 공유하기 버튼 클릭" width="300"/>
+   <img src="https://github.com/user-attachments/assets/7183dd0b-abb9-4b5c-a118-5204ef460dc6" alt="상담 공유하기 버튼 클릭" width="300"/>
 
-   <img src="image-8.png" alt="상담 공유 게시글 작성 페이지" width="300"/>
+   <img src="https://github.com/user-attachments/assets/5f7a9064-1a31-4643-a06c-8a06348d7ddf" alt="상담 공유 게시글 작성 페이지" width="300"/>
 
-   <img src="image-9.png" alt="게시판으로 이동되어 업로드 된 것을 확인" width="400"/>
+   <img src="https://github.com/user-attachments/assets/1b32f4d5-5764-439d-bc52-e948b7514d52" alt="게시판으로 이동되어 업로드 된 것을 확인" width="400"/>
 
 ---
 
@@ -132,9 +132,9 @@ Lovemap의 장소 추천 기능은 다음 두 가지 흐름으로 작동합니�
 
 #### ① Kakao Map 기반 장소 검색, ② AI 블로그 검색 장소 추천
 ---
-<img src="image-10.png" alt="홈화면 ⮕ 데이트 코스 추천 페이지" width="200"/>
+<img src="https://github.com/user-attachments/assets/1b505c5b-e146-4e80-a987-7718622a31d2" alt="홈화면 ⮕ 데이트 코스 추천 페이지" width="200"/>
 
-<img src="image-12.png" alt="데이트 코스 추천 페이지" width="200"/>
+<img src="https://github.com/user-attachments/assets/25b1bddd-12bd-48e2-b148-98bad19ea039" alt="데이트 코스 추천 페이지" width="200"/>
 
 ---
 
@@ -142,7 +142,7 @@ Lovemap의 장소 추천 기능은 다음 두 가지 흐름으로 작동합니�
    └ 예: "중앙대 데이트", "전체"
    ⮕ "검색하기" 버튼 클릭
 
-   <img src="image-13.png" alt="데이트 장소 검색하기" width="200"/>
+   <img src="https://github.com/user-attachments/assets/858101fb-f629-459d-9ada-ac908a0d014c" alt="데이트 장소 검색하기" width="200"/>
 
 #### 2. 💻 프론트엔드: Kakao Map API 직접 호출
    └ `GET /api/place/recommend?location=중앙대데이트`
@@ -159,7 +159,7 @@ Lovemap의 장소 추천 기능은 다음 두 가지 흐름으로 작동합니�
    ⮕ 각 카드에는 장소명, 주소, 전화번호 등이 포함됨
    ⮕ 지도와 연동되어 마커 표시 및 클릭 시 상세 위치 확인 가능
 
-   <img src="image-14.png" alt="카카오맵 결과 표시" width="300"/>
+   <img src="https://github.com/user-attachments/assets/3a9736d9-c8ec-45c1-a499-29b9761da0eb" alt="카카오맵 결과 표시" width="300"/>
 
 #### 5. 🧍 사용자: 데이트 코스 선택
    └ 검색 결과 스크롤 및 페이지 넘기기로 희망하는 데이트 장소 선택
@@ -167,26 +167,26 @@ Lovemap의 장소 추천 기능은 다음 두 가지 흐름으로 작동합니�
    ⮕ 게시판 공유 희망 시 **게시판에 공유하기** 버튼 클릭
    ⮕ 선택 초기화 희망 시 **모든 선택 초기화** 버튼 클릭
 
-   <img src="image-15.png" alt="검색 결과 리스트에서 희망 장소 선택" width="200"/>
+   <img src="https://github.com/user-attachments/assets/6601273b-0a2e-4936-a3e0-9126a0a879e4" alt="검색 결과 리스트에서 희망 장소 선택" width="200"/>
 
-   <img src="image-16.png" alt="지도에서 위치 확인 및 코스 공유, 선택 초기화 가능" width="400"/>
+   <img src="https://github.com/user-attachments/assets/b17815c2-4f48-4c5c-a5e8-d07294e8d21a" alt="지도에서 위치 확인 및 코스 공유, 선택 초기화 가능" width="400"/>
 
 #### 6. 데이트 코스 공유하기 클릭 시
    └ 게시글 작성 칸 생성 
    ⮕ 제목 및 내용 수정 후 태그 선택 & 공유하기 버튼 클릭
 
-   <img src="image-17.png" alt="게시판에 공유하기 클릭시 뜨는 작성 창" width="200"/>
+   <img src="https://github.com/user-attachments/assets/f9c8ee2d-03e2-4785-9be0-98fa8e0dd31b" alt="게시판에 공유하기 클릭시 뜨는 작성 창" width="200"/>
 
-   <img src="image-18.png" alt="수정 후 태그 선택, 공유하기 버튼 클릭" width="200"/>
+   <img src="https://github.com/user-attachments/assets/8cfb1801-0bdc-4b3f-b88c-87b4f295d3cf" alt="수정 후 태그 선택, 공유하기 버튼 클릭" width="200"/>
 
-   <img src="image-19.png" alt="클릭 후 뜨는 알림" width="300"/>
+   <img src="https://github.com/user-attachments/assets/ae41ccd7-6aa7-4bbf-b6d9-c2b7f741c854" alt="클릭 후 뜨는 알림" width="300"/>
 
-   <img src="image-22.png" alt="게시찬에서 게시글 확인 가능" width="300"/>
+   <img src="https://github.com/user-attachments/assets/7301a5b7-87d0-481b-a86b-2722cfcd73c5" alt="게시찬에서 게시글 확인 가능" width="300"/>
 
 #### 7. AI 장소 추천하기 클릭 시
    └ AI 검색 결과 화면에 표시
    
-   <img src="image-21.png" alt="ai 장소 추천 결과" width="300"/>
+   <img src="https://github.com/user-attachments/assets/1fcd6d90-89b7-4ff2-8ea2-d0ebd1df0e9d" alt="ai 장소 추천 결과" width="300"/>
 
 ---
 
@@ -198,8 +198,9 @@ Lovemap의 게시판 기능은 다음 두 가지 흐름으로 작동합니다:
 
 ---
 
-<img src="image-23.png" alt="홈화면 ⮕ 게시판 페이지" width="200"/>
-<img src="image-25.png" alt="게시판 페이지" width="400"/>
+<img src="https://github.com/user-attachments/assets/9956d0ae-7db0-44fa-8d7e-661cc39158f8" alt="홈화면 ⮕ 게시판 페이지" width="200"/>
+
+<img src="https://github.com/user-attachments/assets/806740ab-034f-4b34-922c-05da0c70fcb8" alt="게시판 페이지" width="400"/>
 
 ---
 
@@ -211,13 +212,13 @@ Lovemap의 게시판 기능은 다음 두 가지 흐름으로 작동합니다:
    - 제목과 본문 작성  
    - 하단의 태그 선택 영역에서 원하는 태그 클릭 (다중 선택 가능)
 
-   <img src="image-26.png" alt="게시글 작성 페이지" width="300"/>
+   <img src="https://github.com/user-attachments/assets/63eaacbb-f203-42bb-80e7-640ade4197ea" alt="게시글 작성 페이지" width="300"/>
 
 #### 📤 작성 완료 후 등록 버튼 클릭
    - 작성한 게시글을 등록하면 게시판 메인 화면으로 자동 이동  
    - 최신 순으로 작성한 게시글 확인 가능 
 
-   <img src="image-27.png" alt="게시판" width="400"/>
+   <img src="https://github.com/user-attachments/assets/71d44a3d-90a4-4c70-b829-b9faf3ecde97" alt="게시판" width="400"/>
 
 
 #### 💻 프론트엔드 (React + fetch API)
@@ -239,7 +240,7 @@ Lovemap의 게시판 기능은 다음 두 가지 흐름으로 작동합니다:
    - 키워드 입력 시 실시간 결과 필터링 지원  
    - 관련된 게시글이 실시간으로 아래 리스트에 출력됨  
 
-   <img src="image-29.png" alt="고백 키워드 검색 결과" width="300"/>
+   <img src="https://github.com/user-attachments/assets/92858c17-3a64-47fd-a513-20300c0e2891" alt="고백 키워드 검색 결과" width="300"/>
 
 - **💻프론트엔드 (React + fetch API)** 
    - 입력값을 `GET` 요청 파라미터로 전달하여 검색
@@ -272,7 +273,7 @@ Lovemap의 게시판 기능은 다음 두 가지 흐름으로 작동합니다:
    
    ⮕ 결과를 JSON으로 변환하여 프론트엔드로 응답
 
-   <img src="image-30.png" alt="고민 태그 설정 결과" width="300"/>
+   <img src="https://github.com/user-attachments/assets/75fb64bc-b537-43e9-b172-d140b05d5ae8" alt="고민 태그 설정 결과" width="300"/>
 
 ---
 
@@ -283,8 +284,9 @@ Lovemap의 게시판 기능은 다음 두 가지 흐름으로 작동합니다:
    - `Enter` 키 또는 "댓글 작성" 버튼을 클릭하여 전송  
    - 댓글은 작성자 이름 없이 **익명**으로 표시됨
 
-   <img src="image-32.png" alt="익명 댓글 입력" width="200"/>
-   <img src="image-33.png" alt="댓글 생성 확인" width="200"/>
+   <img src="https://github.com/user-attachments/assets/865bcaa1-dabd-4cd3-90aa-ff723256ee39" alt="익명 댓글 입력" width="200"/>
+   
+   <img src="https://github.com/user-attachments/assets/77b06967-c1be-47b9-9335-7602bdd8a166" alt="댓글 생성 확인" width="200"/>
 
 #### 2. 💻 프론트엔드 (React + fetch API)  
    - 사용자가 작성한 댓글을 `fetch()`를 사용하여 백엔드 API로 전송  
