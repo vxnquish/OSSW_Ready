@@ -23,9 +23,9 @@ CREATE TABLE forum_tags (
 );
 
 CREATE TABLE comment (
-                         id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                         content TEXT NOT NULL,
-                         anonymous_name VARCHAR(50),
-                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         forum_content_id BIGINT
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    content TEXT NOT NULL,
+    anonymous_name VARCHAR(50),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    forum_content_id BIGINT
 );
