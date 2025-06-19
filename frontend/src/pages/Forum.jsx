@@ -6,8 +6,9 @@ import megaphone from "../../icons/megaphone.png";
 export default function Forum() {
     const [posts, setPosts] = useState([]);
     const [search, setSearch] = useState('');
-    const [selectedTags, setSelectedTags] = useState([]); // 배열로 변경
+    const [selectedTags, setSelectedTags] = useState([]);
     const [availableTags, setAvailableTags] = useState([]);
+    const [clickedPostId, setClickedPostId] = useState(null); // 클릭된 게시물 추적
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -44,9 +45,8 @@ export default function Forum() {
             return;
         }
 
-        // 여러 태그를 쉼표로 구분해서 전송하거나, 백엔드 API에 맞게 수정
         const searchData = {
-            content: tags.join(','), // 또는 tags 배열 자체를 전송
+            content: tags.join(','),
             page: 1,
             size: 15,
             mode: 'TAG'
@@ -109,11 +109,10 @@ export default function Forum() {
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             if (selectedTags.length > 0) {
-                // 태그가 선택된 상태에서는 텍스트 검색 안함
                 return;
             }
             searchByText(search);
-        }, 300); // 300ms 디바운스
+        }, 300);
 
         return () => clearTimeout(timeoutId);
     }, [search, selectedTags]);
@@ -121,14 +120,13 @@ export default function Forum() {
     // 태그 선택/해제 처리
     const handleTagSelect = (tag) => {
         if (tag === '') {
-            // 전체 선택
             setSelectedTags([]);
             setSearch('');
             loadPosts();
         } else {
             const newSelectedTags = selectedTags.includes(tag)
-                ? selectedTags.filter(t => t !== tag) // 이미 선택된 태그면 제거
-                : [...selectedTags, tag]; // 새 태그면 추가
+                ? selectedTags.filter(t => t !== tag)
+                : [...selectedTags, tag];
 
             setSelectedTags(newSelectedTags);
             setSearch('');
@@ -143,6 +141,16 @@ export default function Forum() {
         loadPosts();
     };
 
+    // 🎯 개선된 게시물 클릭 핸들러
+    const handlePostClick = (postId) => {
+        setClickedPostId(postId);
+
+        // 클릭 애니메이션 후 네비게이션 (더 빠르게)
+        setTimeout(() => {
+            navigate(`/forum/${postId}`);
+        }, 100); // 0.1초로 단축
+    };
+
     return (
         <div className="forum-container">
             <h2>
@@ -154,7 +162,8 @@ export default function Forum() {
                         verticalAlign: 'middle',
                         marginRight: '0.4rem'
                     }}
-                />익명 게시판</h2>
+                />익명 게시판
+            </h2>
 
             <div className="forum-top">
                 <input
@@ -162,12 +171,11 @@ export default function Forum() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder={selectedTags.length > 0 ? "태그 필터가 활성화되어 있습니다" : "제목 또는 내용으로 검색"}
-                    disabled={selectedTags.length > 0} // 태그가 선택되면 검색창 비활성화
+                    disabled={selectedTags.length > 0}
                 />
                 <button onClick={() => navigate('/forum/write')}>작성</button>
             </div>
 
-            {/* 선택된 태그 표시 및 관리 */}
             {selectedTags.length > 0 && (
                 <div className="selected-tags-container">
                     <span>선택된 태그:</span>
@@ -193,7 +201,6 @@ export default function Forum() {
                 </div>
             )}
 
-            {/* 태그 필터 버튼들 */}
             <div className="tag-filter-container">
                 <button
                     className={`tag-filter-btn ${selectedTags.length === 0 ? 'active' : ''}`}
@@ -224,13 +231,12 @@ export default function Forum() {
                     posts.map((post) => (
                         <li
                             key={post.id}
-                            className="forum-item"
-                            onClick={() => navigate(`/forum/${post.id}`)}
+                            className={`forum-item ${clickedPostId === post.id ? 'clicking' : ''}`}
+                            onClick={() => handlePostClick(post.id)}
                             style={{ cursor: 'pointer' }}
                         >
                             <div>
                                 <p>{post.title}</p>
-                                {/* 태그 표시 */}
                                 {post.tags && (
                                     <div className="tags">
                                         {Array.isArray(post.tags)
