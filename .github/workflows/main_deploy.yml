@@ -1,123 +1,123 @@
-name: Main Branch CI/CD Pipeline
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-env:
-  JAR_NAME: 'backend'
-  JAVA_VERSION: '17'
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Create application configuration files
-        run: |
-          mkdir -p ./src/main/resources
-          if [ -n "${{ secrets.APPLICATION_PROPERTIES }}" ]; then
-            echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
-            echo "✅ application.properties created"
-          fi
-          ls -la ./src/main/resources/application.* || echo "No application config files found"
-        working-directory: backend
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-        working-directory: backend
-
-      - name: Build without running tests
-        run: ./gradlew bootJar -x test
-        working-directory: backend
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: test-results
-          path: backend/build/reports/tests/
-
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    outputs:
-      jar-version: ${{ steps.build-info.outputs.jar-version }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Create application configuration files
-        run: |
-          mkdir -p ./src/main/resources
-          echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
-        working-directory: backend
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-        working-directory: backend
-
-      - name: Build with Gradle
-        run: ./gradlew clean build -x test --no-daemon
-        working-directory: backend
-
-      - name: Get build info
-        id: build-info
-        run: |
-          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" ! -name '*plain.jar' | head -n 1)
-          if [ -z "$JAR_FILE" ]; then
-            echo "❌ Error: JAR file not found"
-            ls -la build/libs/ || echo "build/libs directory not found"
-            exit 1
-          fi
-          JAR_VERSION=$(basename "$JAR_FILE" | sed "s/${JAR_NAME}-//g" | sed 's/.jar//g')
-          echo "jar-version=$JAR_VERSION" >> $GITHUB_OUTPUT
-          echo "📦 Built JAR: $(basename $JAR_FILE)"
-        working-directory: backend
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.JAR_NAME }}
-          path: backend/build/libs/${{ env.JAR_NAME }}-*.jar
-          retention-days: 7
-
+#name: Main Branch CI/CD Pipeline
+#
+#on:
+#  push:
+#    branches: [main]
+#  pull_request:
+#    branches: [main]
+#
+#env:
+#  JAR_NAME: 'backend'
+#  JAVA_VERSION: '17'
+#
+#jobs:
+#  test:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: '17'
+#
+#      - name: Cache Gradle packages
+#        uses: actions/cache@v3
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
+#          restore-keys: |
+#            ${{ runner.os }}-gradle-
+#
+#      - name: Create application configuration files
+#        run: |
+#          mkdir -p ./src/main/resources
+#          if [ -n "${{ secrets.APPLICATION_PROPERTIES }}" ]; then
+#            echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
+#            echo "✅ application.properties created"
+#          fi
+#          ls -la ./src/main/resources/application.* || echo "No application config files found"
+#        working-directory: backend
+#
+#      - name: Grant execute permission for gradlew
+#        run: chmod +x gradlew
+#        working-directory: backend
+#
+#      - name: Build without running tests
+#        run: ./gradlew bootJar -x test
+#        working-directory: backend
+#
+#      - name: Upload test results
+#        uses: actions/upload-artifact@v4
+#        if: failure()
+#        with:
+#          name: test-results
+#          path: backend/build/reports/tests/
+#
+#  build:
+#    needs: test
+#    runs-on: ubuntu-latest
+#    outputs:
+#      jar-version: ${{ steps.build-info.outputs.jar-version }}
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: '17'
+#
+#      - name: Cache Gradle packages
+#        uses: actions/cache@v3
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
+#          restore-keys: |
+#            ${{ runner.os }}-gradle-
+#
+#      - name: Create application configuration files
+#        run: |
+#          mkdir -p ./src/main/resources
+#          echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
+#        working-directory: backend
+#
+#      - name: Grant execute permission for gradlew
+#        run: chmod +x gradlew
+#        working-directory: backend
+#
+#      - name: Build with Gradle
+#        run: ./gradlew clean build -x test --no-daemon
+#        working-directory: backend
+#
+#      - name: Get build info
+#        id: build-info
+#        run: |
+#          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" ! -name '*plain.jar' | head -n 1)
+#          if [ -z "$JAR_FILE" ]; then
+#            echo "❌ Error: JAR file not found"
+#            ls -la build/libs/ || echo "build/libs directory not found"
+#            exit 1
+#          fi
+#          JAR_VERSION=$(basename "$JAR_FILE" | sed "s/${JAR_NAME}-//g" | sed 's/.jar//g')
+#          echo "jar-version=$JAR_VERSION" >> $GITHUB_OUTPUT
+#          echo "📦 Built JAR: $(basename $JAR_FILE)"
+#        working-directory: backend
+#
+#      - name: Upload build artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ env.JAR_NAME }}
+#          path: backend/build/libs/${{ env.JAR_NAME }}-*.jar
+#          retention-days: 7
+#
 #  deploy:
 #    needs: [test, build]
 #    runs-on: ubuntu-latest
@@ -181,6 +181,127 @@ jobs:
 #          else
 #            echo "💥 ❌ Deployment failed!"
 #          fi
+
+name: Main Branch CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  JAR_NAME: 'backend'
+  JAVA_VERSION: '17'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Create application configuration files
+        run: |
+          mkdir -p ./src/main/resources
+          if [ -n "${{ secrets.APPLICATION_PROPERTIES }}" ]; then
+            echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
+            echo "✅ application.properties created"
+          fi
+          ls -la ./src/main/resources/application.* || echo "No config files"
+        working-directory: backend
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        working-directory: backend
+
+      - name: Build without running tests
+        run: ./gradlew bootJar -x test
+        working-directory: backend
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: backend/build/reports/tests/
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      jar-version: ${{ steps.build-info.outputs.jar-version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Create application configuration files
+        run: |
+          mkdir -p ./src/main/resources
+          echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
+        working-directory: backend
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        working-directory: backend
+
+      - name: Build with Gradle
+        run: ./gradlew clean build -x test --no-daemon
+        working-directory: backend
+
+      - name: Get build info
+        id: build-info
+        run: |
+          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" ! -name '*plain.jar' | head -n 1)
+          if [ -z "$JAR_FILE" ]; then
+            echo "❌ JAR not found"
+            ls -la build/libs/
+            exit 1
+          fi
+          JAR_VERSION=$(basename "$JAR_FILE" | sed "s/${JAR_NAME}-//g" | sed 's/.jar//g')
+          echo "jar-version=$JAR_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Built JAR: $(basename $JAR_FILE)"
+        working-directory: backend
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.JAR_NAME }}
+          path: backend/build/libs/${{ env.JAR_NAME }}-*.jar
+          retention-days: 7
+
   deploy:
     needs: [test, build]
     runs-on: ubuntu-latest
@@ -197,11 +318,11 @@ jobs:
         run: |
           JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" | head -n 1)
           if [ -z "$JAR_FILE" ]; then
-            echo "❌ Error: Downloaded JAR file not found"
+            echo "❌ JAR not found"
             exit 1
           fi
           echo "jar-file=$JAR_FILE" >> $GITHUB_OUTPUT
-          echo "🚀 Preparing to deploy: $(basename $JAR_FILE)"
+          echo "🚀 Ready to deploy: $(basename $JAR_FILE)"
 
       - name: Deploy to EC2 Server
         env:
@@ -215,42 +336,12 @@ jobs:
           JAR_FILE="${{ steps.prepare.outputs.jar-file }}"
           TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
 
-          echo "🔌 Testing connection..."
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "echo '✅ Server connection successful'"
-
-          echo "📦 Creating backup if needed..."
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
-            if [ -f /home/$EC2_USERNAME/$TARGET_JAR_NAME ]; then
-              cp /home/$EC2_USERNAME/$TARGET_JAR_NAME /home/$EC2_USERNAME/${TARGET_JAR_NAME}.backup
-              echo '✅ Backup created'
-            fi
-          "
-
-          echo "⬆️ Uploading new JAR..."
-          scp -i private_key.pem -o StrictHostKeyChecking=no "$JAR_FILE" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
-
-          echo "🚀 Starting app..."
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST <<'EOF'
-            TARGET_JAR_NAME="backend.jar"
-            echo "🔁 Stopping old app..."
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST <<EOF
+            echo "🔁 Stopping existing app..."
             pkill -TERM -f "$TARGET_JAR_NAME" || true
             sleep 5
 
-            echo "🟢 Launching new app in background..."
-            nohup java -jar -Dspring.profiles.active=prod /home/$USER/$TARGET_JAR_NAME > app.log 2>&1 &
-            echo "✅ App started (background)"
-            exit 0
-  EOF
-  
-  rm -f private_key.pem
-  echo "✅ Deployment complete"
-
-- name: Deployment Summary
-  if: always()
-  run: |
-    if [ "${{ job.status }}" == "success" ]; then
-      echo "🎉 ✅ Production deployment successful!"
-      echo "🌐 Application URL: http://${{ secrets.EC2_HOST }}:8080"
-    else
-      echo "💥 ❌ Deployment failed!"
-    fi
+            echo "📦 Backing up old JAR..."
+            if [ -f /home/$EC2_USERNAME/$TARGET_JAR_NAME ]; then
+              cp /home/$EC2_USERNAME/$TARGET_JAR_NAME /home/$EC2_USERNAME/${TARGET_JAR_NAME}.backup
+              echo "✅ Backup complete"
