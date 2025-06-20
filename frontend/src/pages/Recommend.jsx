@@ -7,7 +7,7 @@ import placeIcon from "../../icons/place.png";
 
 export default function Recommend() {
   // 기존 상태들
-  const [keyword, setKeyword] = useState('홍대');
+  const [keyword, setKeyword] = useState('홍대 데이트');
   const [mood, setMood] = useState('');
   const [places, setPlaces] = useState([]);
   const [pagination, setPagination] = useState(null);
