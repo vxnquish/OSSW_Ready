@@ -309,11 +309,9 @@ jobs:
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
-
           JAR_FILE="${{ steps.prepare.outputs.jar-file }}"
           TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
 
-          # 백업 및 종료
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST <<EOF
   echo "🔁 Stopping old app..."
   pkill -TERM -f "$TARGET_JAR_NAME" || true
@@ -326,13 +324,11 @@ jobs:
   fi
   EOF
   
-  # 업로드
-  echo "⬆️ Uploading JAR..."
+  echo "⬆️ Uploading new JAR..."
   scp -i private_key.pem -o StrictHostKeyChecking=no "$JAR_FILE" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
   
-  # 실행
-  ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST <<EOF
   echo "🚀 Launching new app..."
+  ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST <<EOF
   nohup java -jar -Dspring.profiles.active=prod /home/$EC2_USERNAME/$TARGET_JAR_NAME > app.log 2>&1 &
   echo "✅ App launched"
   exit 0
