@@ -212,6 +212,13 @@ jobs:
         run: ./gradlew bootJar -x test
         working-directory: backend
 
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: backend/build/reports/tests/
+
   build:
     needs: test
     runs-on: ubuntu-latest
@@ -306,22 +313,22 @@ jobs:
           TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
 
           echo "🔁 Stopping and backing up app..."
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST << 'EOF'
-          pkill -TERM -f backend.jar || true
-          sleep 5
-          if [ -f backend.jar ]; then
-            cp backend.jar backend.jar.backup
-            echo "✅ Backup complete"
-          fi
-  EOF
-  
-  echo "⬆️ Uploading new JAR..."
-  scp -i private_key.pem -o StrictHostKeyChecking=no "$JAR_FILE" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
-  
-  echo "🚀 Launching new app..."
-  ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST << 'EOF'
-  nohup java -jar -Dspring.profiles.active=prod backend.jar > app.log 2>&1 &
-  echo "✅ App launched"
-  EOF
-  
-  rm -f private_key.pem
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
+            pkill -TERM -f $TARGET_JAR_NAME || true
+            sleep 5
+            if [ -f $TARGET_JAR_NAME ]; then
+              cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup
+              echo '✅ Backup complete'
+            fi
+          "
+
+          echo "⬆️ Uploading new JAR..."
+          scp -i private_key.pem -o StrictHostKeyChecking=no "$JAR_FILE" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
+
+          echo "🚀 Launching new app..."
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
+            nohup java -jar -Dspring.profiles.active=prod $TARGET_JAR_NAME > app.log 2>&1 &
+            echo '✅ App launched'
+          "
+
+          rm -f private_key.pem
