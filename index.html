@@ -2,27 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- GitHub Pages 하위 경로 지정 -->
+    <!-- 서브폴더 기준점 지정 -->
     <base href="/OSSW_Ready/" />
-
-    <link rel="icon" href="data:image/svg+xml,
-      <svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
-        <text y=%22.9em%22 font-size=%2290%22>❤️</text>
-      </svg>">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RUREADYIMREADY</title>
-
-    <!-- 카카오 지도 SDK -->
-    <script
-      type="text/javascript"
-      src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=0adb76f41ccb3033dd4c44622de2b89e&libraries=services"
-    ></script>
-    <script type="module" crossorigin src="/OSSW_Ready/assets/index-QxVfIj4M.js"></script>
+    <!-- 카카오 SDK (절대 경로 OK) -->
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=…&libraries=services"></script>
+    <script type="module" crossorigin src="/OSSW_Ready/assets/index-CGIlq08U.js"></script>
     <link rel="stylesheet" crossorigin href="/OSSW_Ready/assets/index-CW334ozj.css">
   </head>
   <body>
     <div id="root"></div>
-    <!-- Vite 개발/빌드 진입점: 해시 없이 src/main.jsx 만 가리킵니다 -->
+    <!-- Vite가 해시 붙여서 dist 에 inject 해 줄 entry -->
   </body>
 </html>
