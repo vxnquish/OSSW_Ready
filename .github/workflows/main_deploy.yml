@@ -40,7 +40,7 @@
 #            echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
 #            echo "✅ application.properties created"
 #          fi
-#          ls -la ./src/main/resources/application.* || echo "No application config files found"
+#          ls -la ./src/main/resources/application.* || echo "No config files"
 #        working-directory: backend
 #
 #      - name: Grant execute permission for gradlew
@@ -102,8 +102,8 @@
 #        run: |
 #          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" ! -name '*plain.jar' | head -n 1)
 #          if [ -z "$JAR_FILE" ]; then
-#            echo "❌ Error: JAR file not found"
-#            ls -la build/libs/ || echo "build/libs directory not found"
+#            echo "❌ JAR not found"
+#            ls -la build/libs/
 #            exit 1
 #          fi
 #          JAR_VERSION=$(basename "$JAR_FILE" | sed "s/${JAR_NAME}-//g" | sed 's/.jar//g')
@@ -134,11 +134,11 @@
 #        run: |
 #          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" | head -n 1)
 #          if [ -z "$JAR_FILE" ]; then
-#            echo "❌ Error: Downloaded JAR file not found"
+#            echo "❌ JAR not found"
 #            exit 1
 #          fi
 #          echo "jar-file=$JAR_FILE" >> $GITHUB_OUTPUT
-#          echo "🚀 Preparing to deploy: $(basename $JAR_FILE)"
+#          echo "🚀 Ready to deploy: $(basename $JAR_FILE)"
 #
 #      - name: Deploy to EC2 Server
 #        env:
@@ -152,36 +152,15 @@
 #          JAR_FILE="${{ steps.prepare.outputs.jar-file }}"
 #          TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
 #
-#          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "echo '✅ Server connection successful'"
+#          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST <<EOF
+#            echo "🔁 Stopping existing app..."
+#            pkill -TERM -f "$TARGET_JAR_NAME" || true
+#            sleep 5
 #
-#          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
+#            echo "📦 Backing up old JAR..."
 #            if [ -f /home/$EC2_USERNAME/$TARGET_JAR_NAME ]; then
 #              cp /home/$EC2_USERNAME/$TARGET_JAR_NAME /home/$EC2_USERNAME/${TARGET_JAR_NAME}.backup
-#              echo '✅ Backup created'
-#            fi
-#          "
-#
-#          scp -i private_key.pem -o StrictHostKeyChecking=no "$JAR_FILE" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
-#
-#          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
-#            pkill -TERM -f '$TARGET_JAR_NAME' || true
-#            sleep 5
-#            nohup java -jar -Dspring.profiles.active=prod /home/$EC2_USERNAME/$TARGET_JAR_NAME > app.log 2>&1 &
-#          "
-#
-#          rm -f private_key.pem
-#          echo "✅ Deployment complete"
-#
-#      - name: Deployment Summary
-#        if: always()
-#        run: |
-#          if [ "${{ job.status }}" == "success" ]; then
-#            echo "🎉 ✅ Production deployment successful!"
-#            echo "🌐 Application URL: http://${{ secrets.EC2_HOST }}:8080"
-#          else
-#            echo "💥 ❌ Deployment failed!"
-#          fi
-
+#              echo "✅ Backup complete"
 name: Main Branch CI/CD Pipeline
 
 on:
@@ -222,9 +201,7 @@ jobs:
           mkdir -p ./src/main/resources
           if [ -n "${{ secrets.APPLICATION_PROPERTIES }}" ]; then
             echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
-            echo "✅ application.properties created"
           fi
-          ls -la ./src/main/resources/application.* || echo "No config files"
         working-directory: backend
 
       - name: Grant execute permission for gradlew
@@ -336,12 +313,39 @@ jobs:
           JAR_FILE="${{ steps.prepare.outputs.jar-file }}"
           TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
 
+          # 백업 및 종료
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST <<EOF
-            echo "🔁 Stopping existing app..."
-            pkill -TERM -f "$TARGET_JAR_NAME" || true
-            sleep 5
+  echo "🔁 Stopping old app..."
+  pkill -TERM -f "$TARGET_JAR_NAME" || true
+  sleep 5
+  
+  echo "📦 Backing up..."
+  if [ -f /home/$EC2_USERNAME/$TARGET_JAR_NAME ]; then
+  cp /home/$EC2_USERNAME/$TARGET_JAR_NAME /home/$EC2_USERNAME/${TARGET_JAR_NAME}.backup
+  echo "✅ Backup complete"
+  fi
+  EOF
+  
+  # 업로드
+  echo "⬆️ Uploading JAR..."
+  scp -i private_key.pem -o StrictHostKeyChecking=no "$JAR_FILE" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
+  
+  # 실행
+  ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST <<EOF
+  echo "🚀 Launching new app..."
+  nohup java -jar -Dspring.profiles.active=prod /home/$EC2_USERNAME/$TARGET_JAR_NAME > app.log 2>&1 &
+  echo "✅ App launched"
+  exit 0
+  EOF
+  
+  rm -f private_key.pem
+  echo "✅ Deployment complete"
 
-            echo "📦 Backing up old JAR..."
-            if [ -f /home/$EC2_USERNAME/$TARGET_JAR_NAME ]; then
-              cp /home/$EC2_USERNAME/$TARGET_JAR_NAME /home/$EC2_USERNAME/${TARGET_JAR_NAME}.backup
-              echo "✅ Backup complete"
+- name: Deployment Summary
+  if: always()
+  run: |
+    if [ "${{ job.status }}" == "success" ]; then
+      echo "🎉 ✅ Production deployment successful!"
+      echo "🌐 http://${{ secrets.EC2_HOST }}:8080"
+    else
+      echo "❌ Deployment failed"
