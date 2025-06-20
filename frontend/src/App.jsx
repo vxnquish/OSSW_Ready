@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import Chat from './pages/Chat';
 import Recommend from './pages/Recommend';
@@ -84,7 +84,7 @@ const AnimatedRoutes = () => {
 };
 
 const App = () => (
-    <>
+    <Router>
         <nav style={{ padding: '1rem', borderBottom: '1px solid #ddd' }}>
             <Link to="/" style={{ marginRight: '1rem' }}>🏠 홈</Link>
             <Link to="/chat" style={{ marginRight: '1rem' }}>💌 연애 상담</Link>
@@ -92,7 +92,7 @@ const App = () => (
             <Link to="/forum">📢 게시판</Link>
         </nav>
         <AnimatedRoutes />
-    </>
+    </Router>
 );
 
 export default App;
