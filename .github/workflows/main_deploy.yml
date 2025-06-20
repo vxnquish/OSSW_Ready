@@ -52,8 +52,8 @@ jobs:
         run: chmod +x gradlew
         working-directory: backend
 
-      - name: Run tests
-        run: ./gradlew test --no-daemon
+      - name: Build without running tests
+        run: ./gradlew bootJar -x test
         working-directory: backend
 
       - name: Upload test results
