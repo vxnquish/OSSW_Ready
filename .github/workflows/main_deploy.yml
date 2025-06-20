@@ -335,13 +335,3 @@ jobs:
   EOF
   
   rm -f private_key.pem
-  echo "✅ Deployment complete"
-
-- name: Deployment Summary
-  if: always()
-  run: |
-    if [ "${{ job.status }}" == "success" ]; then
-      echo "🎉 ✅ Production deployment successful!"
-      echo "🌐 http://${{ secrets.EC2_HOST }}:8080"
-    else
-      echo "❌ Deployment failed"
