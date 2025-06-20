@@ -1,0 +1,332 @@
+#name: Main Branch CI/CD Pipeline
+#
+#on:
+#  push:
+#    branches: [ main ]  # main 브랜치 트리거
+#  pull_request:
+#    branches: [ main ]
+#
+#env:
+#  JAR_NAME: 'lovemap_backend'
+#  JAVA_VERSION: '17'
+#
+#jobs:
+#  test:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: '17'
+#
+#      - name: Cache Gradle packages
+#        uses: actions/cache@v3
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+#          restore-keys: |
+#            ${{ runner.os }}-gradle-
+#
+#      - name: Create application configuration files
+#        run: |
+#          mkdir -p ./src/main/resources
+#
+#          # application.properties 생성
+#          if [ -n "${{ secrets.APPLICATION_PROPERTIES }}" ]; then
+#            echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
+#            echo "✅ application.properties created"
+#          fi
+#
+#          # application.yml 생성 (선택사항)
+#          if [ -n "${{ secrets.APPLICATION_YML }}" ]; then
+#            echo "${{ secrets.APPLICATION_YML }}" > ./src/main/resources/application.yml
+#            echo "✅ application.yml created"
+#          fi
+#
+#          echo "📁 Configuration files:"
+#          ls -la ./src/main/resources/application.* || echo "No application config files found"
+#        shell: bash
+#
+#      - name: Grant execute permission for gradlew
+#        run: chmod +x gradlew
+#
+#      - name: Run tests
+#        run: ./gradlew test --no-daemon
+#
+#      - name: Upload test results
+#        uses: actions/upload-artifact@v4
+#        if: failure()
+#        with:
+#          name: test-results
+#          path: build/reports/tests/
+#
+#  build:
+#    needs: test
+#    runs-on: ubuntu-latest
+#    if: github.event_name == 'push'  # push 이벤트만 빌드
+#    outputs:
+#      jar-version: ${{ steps.build-info.outputs.jar-version }}
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: '17'
+#
+#      - name: Cache Gradle packages
+#        uses: actions/cache@v3
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+#          restore-keys: |
+#            ${{ runner.os }}-gradle-
+#
+#      - name: Create application configuration files
+#        run: |
+#          mkdir -p ./src/main/resources
+#          echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
+#        shell: bash
+#
+#      - name: Grant execute permission for gradlew
+#        run: chmod +x gradlew
+#
+#      - name: Build with Gradle
+#        run: ./gradlew clean build -x test --no-daemon
+#
+#      - name: Get build info
+#        id: build-info
+#        run: |
+#          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" ! -name '*plain.jar' | head -n 1)
+#          if [ -z "$JAR_FILE" ]; then
+#            echo "❌ Error: JAR file not found"
+#            echo "Available files:"
+#            ls -la build/libs/ || echo "build/libs directory not found"
+#            exit 1
+#          fi
+#
+#          JAR_VERSION=$(basename "$JAR_FILE" | sed "s/${JAR_NAME}-//g" | sed 's/.jar//g')
+#          echo "jar-version=$JAR_VERSION" >> $GITHUB_OUTPUT
+#          echo "📦 Built JAR: $(basename $JAR_FILE)"
+#          echo "📊 JAR Size: $(du -h $JAR_FILE | cut -f1)"
+#
+#      - name: Upload build artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ env.JAR_NAME }}
+#          path: build/libs/${{ env.JAR_NAME }}-*.jar
+#          retention-days: 7
+#
+#  deploy:
+#    needs: [test, build]
+#    runs-on: ubuntu-latest
+#    if: github.ref == 'refs/heads/main' && github.event_name == 'push'  # main 브랜치 확인
+#    environment: production  # 운영환경으로 변경
+#    steps:
+#      - name: Download build artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: ${{ env.JAR_NAME }}
+#          path: build/libs/
+#
+#      - name: Prepare deployment
+#        id: prepare
+#        run: |
+#          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" | head -n 1)
+#          if [ -z "$JAR_FILE" ]; then
+#            echo "❌ Error: Downloaded JAR file not found"
+#            exit 1
+#          fi
+#
+#          echo "jar-file=$JAR_FILE" >> $GITHUB_OUTPUT
+#          echo "🚀 Preparing to deploy: $(basename $JAR_FILE)"
+#
+#      - name: Deploy to EC2 Server
+#        env:
+#          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}  # 기존 시크릿명 유지
+#          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+#          EC2_HOST: ${{ secrets.EC2_HOST }}
+#        run: |
+#          # SSH 키 설정
+#          echo "$EC2_SSH_KEY" > private_key.pem
+#          chmod 600 private_key.pem
+#
+#          JAR_FILE="${{ steps.prepare.outputs.jar-file }}"
+#          TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
+#
+#          echo "🔍 Source JAR: $(basename $JAR_FILE)"
+#          echo "🎯 Target JAR: $TARGET_JAR_NAME"
+#
+#          # 서버 연결 테스트
+#          echo "🔌 Testing server connection..."
+#          ssh -i private_key.pem -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+#            $EC2_USERNAME@$EC2_HOST "echo '✅ Server connection successful'"
+#
+#          # 백업 생성
+#          echo "📦 Creating backup..."
+#          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
+#            if [ -f /home/$EC2_USERNAME/$TARGET_JAR_NAME ]; then
+#              cp /home/$EC2_USERNAME/$TARGET_JAR_NAME /home/$EC2_USERNAME/${TARGET_JAR_NAME}.backup
+#              echo '✅ Backup created: ${TARGET_JAR_NAME}.backup'
+#            else
+#              echo 'ℹ️  No existing application to backup'
+#            fi
+#          "
+#
+#          # JAR 파일 업로드
+#          echo "⬆️  Uploading JAR file..."
+#          scp -i private_key.pem -o StrictHostKeyChecking=no \
+#            "$JAR_FILE" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
+#
+#          echo "✅ JAR file uploaded successfully"
+#
+#          # 애플리케이션 배포
+#          echo "🚀 Starting deployment..."
+#          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
+#            echo '🔄 Deployment process starting...'
+#
+#            # 기존 프로세스 종료
+#            if pgrep -f '$TARGET_JAR_NAME' > /dev/null; then
+#              echo '⏹️  Stopping existing application...'
+#              pkill -TERM -f '$TARGET_JAR_NAME'
+#
+#              # Graceful shutdown 대기
+#              for i in {1..15}; do
+#                if ! pgrep -f '$TARGET_JAR_NAME' > /dev/null; then
+#                  echo '✅ Application stopped gracefully'
+#                  break
+#                fi
+#                echo \"⏳ Waiting for graceful shutdown... (\$i/15)\"
+#                sleep 1
+#              done
+#
+#              # 강제 종료가 필요한 경우
+#              if pgrep -f '$TARGET_JAR_NAME' > /dev/null; then
+#                echo '🔨 Force killing application...'
+#                pkill -KILL -f '$TARGET_JAR_NAME'
+#                sleep 2
+#              fi
+#            else
+#              echo 'ℹ️  No existing application running'
+#            fi
+#
+#            # 새 애플리케이션 시작
+#            echo '🚀 Starting new application...'
+#            nohup java -jar \
+#              -Dspring.profiles.active=prod \
+#              -Dserver.port=8080 \
+#              -Xms1024m -Xmx2048m \
+#              -Dfile.encoding=UTF-8 \
+#              -Djava.awt.headless=true \
+#              -XX:+UseG1GC \
+#              -XX:+UseStringDeduplication \
+#              /home/$EC2_USERNAME/$TARGET_JAR_NAME > app.log 2>&1 &
+#
+#            APP_PID=\$!
+#            echo \"📋 Application PID: \$APP_PID\"
+#
+#            # 애플리케이션 시작 대기
+#            echo '⏳ Waiting for application to start...'
+#            sleep 30
+#
+#            # 프로세스 확인
+#            if pgrep -f '$TARGET_JAR_NAME' > /dev/null; then
+#              echo '✅ Application process is running'
+#
+#              # 포트 확인
+#              sleep 10
+#              if netstat -tlnp | grep :8080 > /dev/null; then
+#                echo '✅ Application is listening on port 8080'
+#
+#                # 헬스체크 (Actuator가 있는 경우)
+#                if curl -f -m 10 http://localhost:8080/actuator/health > /dev/null 2>&1; then
+#                  echo '✅ Health check passed'
+#                elif curl -f -m 10 http://localhost:8080/ > /dev/null 2>&1; then
+#                  echo '✅ Application root endpoint is responding'
+#                else
+#                  echo '⚠️  Health check endpoint not available, but application seems to be running'
+#                fi
+#
+#                echo '🎉 Deployment completed successfully!'
+#              else
+#                echo '❌ Application is not listening on port 8080'
+#                echo '📋 Last 20 lines of application log:'
+#                tail -20 app.log
+#                exit 1
+#              fi
+#            else
+#              echo '❌ Application process is not running'
+#              echo '📋 Application log:'
+#              tail -50 app.log
+#              exit 1
+#            fi
+#          "
+#
+#          # 정리
+#          rm -f private_key.pem
+#          echo "🧹 Cleanup completed"
+#
+#      - name: Deployment Summary
+#        if: always()
+#        run: |
+#          if [ "${{ job.status }}" == "success" ]; then
+#            echo "🎉 ✅ Production deployment successful!"
+#            echo "🌐 Application URL: http://${{ secrets.EC2_HOST }}:8080"
+#            echo "📊 Server: ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}"
+#            echo "🔧 Environment: Production"
+#            echo "📦 JAR: ${{ env.JAR_NAME }}.jar"
+#          else
+#            echo "💥 ❌ Production deployment failed!"
+#            echo "🔍 Please check the logs above for error details"
+#            echo "🔄 You can restore the backup if needed:"
+#            echo "   ssh user@server 'mv ${{ env.JAR_NAME }}.jar.backup ${{ env.JAR_NAME }}.jar'"
+#          fi
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Create application configuration files
+        run: |
+          mkdir -p ./src/main/resources
+          if [ -n "${{ secrets.APPLICATION_PROPERTIES }}" ]; then
+            echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
+            echo "✅ application.properties created"
+          fi
+        working-directory: backend
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        working-directory: backend
+
+      - name: Run tests
+        run: ./gradlew test --no-daemon
+        working-directory: backend
