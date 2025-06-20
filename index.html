@@ -1,24 +1,31 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon"
-          href="data:image/svg+xml,
-               <svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
-                 <text y=%22.9em%22 font-size=%2290%22>❤️</text>
-               </svg>">
+
+    <!-- 기준이 되는 기본 경로를 “/” 로 지정 -->
+    <base href="/" />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,
+           <svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
+             <text y=%22.9em%22 font-size=%2290%22>❤️</text>
+           </svg>"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RUREADYIMREADY</title>
 
-    <!-- 카카오 지도 SDK -->
+    <!-- 카카오 지도 SDK (defer 로 비동기 로딩 권장) -->
     <script
-      type="text/javascript"
+      defer
       src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=0adb76f41ccb3033dd4c44622de2b89e&libraries=services"
     ></script>
-    <script type="module" crossorigin src="/OSSW_Ready/assets/index-Xsl9lMh-.js"></script>
-    <link rel="stylesheet" crossorigin href="/OSSW_Ready/assets/index-CW334ozj.css">
+    <script type="module" crossorigin src="/assets/index-CvU6IMUx.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CW334ozj.css">
   </head>
   <body>
     <div id="root"></div>
+    <!-- Vite가 빌드 시 해시가 붙은 JS 파일로 자동 변환해 줍니다 -->
   </body>
 </html>
