@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- base 태그 제거 (Vite가 자동으로 처리함) -->
     <link
       rel="icon"
       href="data:image/svg+xml,
@@ -12,11 +11,27 @@
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RUREADYIMREADY</title>
+    
+    <!-- 404 리다이렉션 처리 -->
+    <script type="text/javascript">
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
+    </script>
+    
+    <!-- 카카오 지도 원래대로 -->
     <script
       defer
       src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=0adb76f41ccb3033dd4c44622de2b89e&libraries=services"
     ></script>
-    <script type="module" crossorigin src="/OSSW_Ready/assets/index-BdalpaqU.js"></script>
+    <script type="module" crossorigin src="/OSSW_Ready/assets/index-Bh6INhJ6.js"></script>
     <link rel="stylesheet" crossorigin href="/OSSW_Ready/assets/index-CW334ozj.css">
   </head>
   <body>
