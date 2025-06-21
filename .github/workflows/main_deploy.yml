@@ -309,27 +309,29 @@ jobs:
           ssh -i private_key.pem -o StrictHostKeyChecking=no -vvv \
             ubuntu@${{ secrets.EC2_HOST }} "echo HELLO"
 
-      - name: Perform deployment
+      - name: Perform deployment (with debug)
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
           JAR_FILE="${{ steps.prepare.outputs.jar-file }}"
           TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
 
-          ssh -i private_key.pem -o StrictHostKeyChecking=no \
-            ubuntu@${EC2_HOST} \
-            "pkill -TERM -f $TARGET_JAR_NAME || true; \
-             sleep 5; \
-             cd /home/ubuntu; \
-             ([ -f $TARGET_JAR_NAME ] && cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup) || true"
+          echo "▶▶ Stop & backup"
+          ssh -i private_key.pem -o StrictHostKeyChecking=no -vvv \
+            ubuntu@"${EC2_HOST}" \
+            "pkill -TERM -f $TARGET_JAR_NAME || true; sleep 5; cd /home/ubuntu; ([ -f $TARGET_JAR_NAME ] && cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup) || true"
+          echo "stop&backup exit=$?"
 
-          scp -i private_key.pem -o StrictHostKeyChecking=no \
-            "$JAR_FILE" ubuntu@${EC2_HOST}:/home/ubuntu/$TARGET_JAR_NAME
+          echo "▶▶ Upload"
+          scp -i private_key.pem -o StrictHostKeyChecking=no -vvv \
+            "$JAR_FILE" ubuntu@"${EC2_HOST}":/home/ubuntu/"$TARGET_JAR_NAME"
+          echo "scp exit=$?"
 
-          ssh -i private_key.pem -o StrictHostKeyChecking=no \
-            ubuntu@${EC2_HOST} \
-            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod \
-             $TARGET_JAR_NAME > app.log 2>&1 & echo '✅ App launched'"
+          echo "▶▶ Launch"
+          ssh -i private_key.pem -o StrictHostKeyChecking=no -vvv \
+            ubuntu@"${EC2_HOST}" \
+            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod $TARGET_JAR_NAME > app.log 2>&1 & echo launch exit=\$?"
+          echo "launch exit=$?"
 
       - name: Cleanup
         run: rm -f private_key.pem
