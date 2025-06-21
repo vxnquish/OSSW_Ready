@@ -261,7 +261,7 @@ jobs:
       - name: Get build info
         id: build-info
         run: |
-          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" ! -name '*plain.jar' | head -n 1)
+          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" ! -name '*plain.jar' | head -n1)
           if [ -z "$JAR_FILE" ]; then
             echo "❌ JAR not found"
             ls -la build/libs/
@@ -307,25 +307,29 @@ jobs:
       - name: Quick SSH connectivity check
         run: |
           ssh -i private_key.pem -o StrictHostKeyChecking=no -vvv \
-            ubuntu@${{ secrets.EC2_HOST }} "echo HELLO" || echo "SSH check failed, exit code $?"
+            ubuntu@${{ secrets.EC2_HOST }} "echo HELLO"
 
-      - name: Debug deployment steps
+      - name: Perform deployment
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          set -e
-          echo "▶▶ Step: Stop & backup"
-          ssh -i private_key.pem -o StrictHostKeyChecking=no -vvv \
-            ubuntu@${{ secrets.EC2_HOST }} \
-            "pkill -TERM -f backend.jar || true && echo stop backup exit \$?; sleep 5"
+          JAR_FILE="${{ steps.prepare.outputs.jar-file }}"
+          TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
 
-          echo "▶▶ Step: Upload"
-          scp -i private_key.pem -o StrictHostKeyChecking=no -vvv \
-            "${{ steps.prepare.outputs.jar-file }}" \
-            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/backend.jar && echo scp exit \$?
+          ssh -i private_key.pem -o StrictHostKeyChecking=no \
+            ubuntu@${EC2_HOST} \
+            "pkill -TERM -f $TARGET_JAR_NAME || true; \
+             sleep 5; \
+             cd /home/ubuntu; \
+             ([ -f $TARGET_JAR_NAME ] && cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup) || true"
 
-          echo "▶▶ Step: Launch"
-          ssh -i private_key.pem -o StrictHostKeyChecking=no -vvv \
-            ubuntu@${{ secrets.EC2_HOST }} \
-            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod backend.jar > app.log 2>&1 & echo launch exit \$?"
+          scp -i private_key.pem -o StrictHostKeyChecking=no \
+            "$JAR_FILE" ubuntu@${EC2_HOST}:/home/ubuntu/$TARGET_JAR_NAME
+
+          ssh -i private_key.pem -o StrictHostKeyChecking=no \
+            ubuntu@${EC2_HOST} \
+            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod \
+             $TARGET_JAR_NAME > app.log 2>&1 & echo '✅ App launched'"
 
       - name: Cleanup
         run: rm -f private_key.pem
