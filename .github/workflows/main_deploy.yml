@@ -282,7 +282,7 @@ jobs:
   deploy:
     needs: [test, build]
     runs-on: ubuntu-latest
-    environment: production
+    #environment: production
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v4
