@@ -316,6 +316,7 @@ jobs:
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
             pkill -TERM -f $TARGET_JAR_NAME || true
             sleep 5
+            cd /home/$EC2_USERNAME
             if [ -f $TARGET_JAR_NAME ]; then
               cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup
               echo '✅ Backup complete'
@@ -323,10 +324,11 @@ jobs:
           "
 
           echo "⬆️ Uploading new JAR..."
-          scp -i private_key.pem -o StrictHostKeyChecking=no "$JAR_FILE" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
+          scp -i private_key.pem -o StrictHostKeyChecking=no \"$JAR_FILE\" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
 
           echo "🚀 Launching new app..."
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
+            cd /home/$EC2_USERNAME
             nohup java -jar -Dspring.profiles.active=prod $TARGET_JAR_NAME > app.log 2>&1 &
             echo '✅ App launched'
           "
