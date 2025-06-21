@@ -15,11 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: actions/cache@v3
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
@@ -32,8 +34,9 @@ jobs:
           cd backend
           chmod +x gradlew
           ./gradlew bootJar -x test
-      - uses: actions/upload-artifact@v4
+      - name: Upload test results
         if: failure()
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: backend/build/reports/tests/
@@ -45,11 +48,13 @@ jobs:
       jar-version: ${{ steps.build-info.outputs.jar-version }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: actions/cache@v3
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
@@ -63,13 +68,15 @@ jobs:
           chmod +x gradlew
           ./gradlew clean build -x test --no-daemon
       - id: build-info
+        name: Get build info
         run: |
           cd backend
           JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" ! -name '*plain.jar' | head -n 1)
           [[ -f "$JAR_FILE" ]] || { echo "JAR not found"; exit 1; }
           echo "jar-version=$(basename "$JAR_FILE" | sed "s/${JAR_NAME}-//;s/.jar//")" >> $GITHUB_OUTPUT
           echo "Built JAR: $JAR_FILE"
-      - uses: actions/upload-artifact@v4
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.JAR_NAME }}
           path: backend/build/libs/${{ env.JAR_NAME }}-*.jar
@@ -80,7 +87,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download artifact
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.JAR_NAME }}
           path: build/libs/
@@ -90,16 +98,24 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
 
-      - name: Stop and backup on EC2
-        run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "if pgrep -f backend.jar > /dev/null; then pkill -TERM -f backend.jar && sleep 5; else echo 'No running process'; fi; \
-             if [ -f /home/${{ secrets.EC2_USERNAME }}/backend.jar ]; then cp /home/${{ secrets.EC2_USERNAME }}/backend.jar /home/${{ secrets.EC2_USERNAME }}/backend.jar.$(date +'%Y%m%d%H%M%S').backup && echo 'Backup succeeded'; else echo 'No existing JAR to backup'; fi"
-
       - name: Test SSH connectivity
         run: |
           ssh -i key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'echo SSH OK'
+
+      - name: Stop backend on EC2
+        continue-on-error: true
+        run: |
+          ssh -i key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "if pgrep -f backend.jar > /dev/null; then pkill -TERM -f backend.jar && echo 'Stopped'; else echo 'No running process'; fi"
+
+      - name: Backup existing JAR on EC2
+        run: |
+          ssh -i key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "if [ -f /home/${{ secrets.EC2_USERNAME }}/backend.jar ]; then cp /home/${{ secrets.EC2_USERNAME }}/backend.jar \
+              /home/${{ secrets.EC2_USERNAME }}/backend.jar.$(date +'%Y%m%d%H%M%S').backup && echo 'Backup succeeded'; else echo 'No existing JAR to backup'; fi"
 
       - name: Upload JAR to EC2
         run: |
@@ -111,20 +127,16 @@ jobs:
             exit 1
           fi
           echo "Uploading $JAR_PATH to EC2..."
-          scp -i key.pem \
-            -o BatchMode=yes \
-            -o ConnectTimeout=10 \
-            -o StrictHostKeyChecking=no \
-            -v "$JAR_PATH" \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/backend.jar || { echo '❌ SCP failed'; exit 1; }
+          scp -i key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -v \
+            "$JAR_PATH" \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/backend.jar
 
-      - name: Upload complete confirmation
-        run: echo "JAR uploaded to EC2 successfully"
-
-      - name: Launch on EC2
+      - name: Launch backend on EC2
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "nohup java -jar -Dspring.profiles.active=prod /home/${{ secrets.EC2_USERNAME }}/backend.jar > /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 & echo 'App launched'"
+          ssh -i key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "nohup java -jar -Dspring.profiles.active=prod /home/${{ secrets.EC2_USERNAME }}/backend.jar > \
+              /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 & echo 'App launched'"
 
       - name: Clean up
         run: rm -f key.pem
