@@ -103,13 +103,20 @@ jobs:
 
       - name: Upload JAR to EC2
         run: |
-          echo "Uploading JAR..."
+          echo "Local directory contents:"
+          ls -la build/libs/
+          JAR_PATH="build/libs/${{ env.JAR_NAME }}-${{ needs.build.outputs.jar-version }}.jar"
+          if [ ! -f "$JAR_PATH" ]; then
+            echo "❌ JAR file not found: $JAR_PATH"
+            exit 1
+          fi
+          echo "Uploading $JAR_PATH to EC2..."
           scp -i key.pem \
             -o BatchMode=yes \
             -o ConnectTimeout=10 \
             -o StrictHostKeyChecking=no \
-            -v build/libs/${{ env.JAR_NAME }}-${{ needs.build.outputs.jar-version }}.jar \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/backend.jar || { echo 'SCP failed'; exit 1; }
+            -v "$JAR_PATH" \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/backend.jar || { echo '❌ SCP failed'; exit 1; }
 
       - name: Upload complete confirmation
         run: echo "JAR uploaded to EC2 successfully"
