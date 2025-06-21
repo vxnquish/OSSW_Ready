@@ -255,20 +255,31 @@ jobs:
 
       - name: Stop and backup on EC2
         run: |
-          JAR=backend.jar
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "if pgrep -f $JAR > /dev/null; then pkill -TERM -f $JAR && sleep 5; else echo 'No running process'; fi; \
-             if [ -f \"/home/${{ secrets.EC2_USERNAME }}/$JAR\" ]; then cp \"/home/${{ secrets.EC2_USERNAME }}/$JAR\" \"/home/${{ secrets.EC2_USERNAME }}/$JAR.$(date +'%Y%m%d%H%M%S').backup\" && echo 'Backup succeeded'; else echo 'No existing JAR to backup'; fi"
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+          if pgrep -f backend.jar; then
+            pkill -TERM -f backend.jar
+            sleep 5
+          fi
 
-      - name: Upload JAR to EC2
-        run: |
-          scp -i key.pem build/libs/${{ env.JAR_NAME }}-${{ needs.build.outputs.jar-version }}.jar \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/backend.jar
+          if [ -f "/home/${{ secrets.EC2_USERNAME }}/backend.jar" ]; then
+            cp "/home/${{ secrets.EC2_USERNAME }}/backend.jar" "/home/${{ secrets.EC2_USERNAME }}/backend.jar.$(date +'%Y%m%d%H%M%S').backup"
+            echo "Backup succeeded"
+          else
+            echo "No existing JAR to backup"
+          fi
+  EOF
 
-      - name: Launch on EC2
-        run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "nohup java -jar -Dspring.profiles.active=prod /home/${{ secrets.EC2_USERNAME }}/backend.jar > /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 & echo 'App launched'"
+- name: Upload JAR to EC2
+  run: |
+    scp -i key.pem build/libs/${{ env.JAR_NAME }}-${{ needs.build.outputs.jar-version }}.jar \
+      ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/backend.jar
 
-      - name: Clean up
-        run: rm -f key.pem
+- name: Launch on EC2
+  run: |
+    ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+    nohup java -jar -Dspring.profiles.active=prod /home/${{ secrets.EC2_USERNAME }}/backend.jar > /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 &
+    echo "App launched"
+EOF
+
+- name: Clean up
+  run: rm -f key.pem
