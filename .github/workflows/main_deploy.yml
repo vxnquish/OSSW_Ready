@@ -177,17 +177,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
@@ -195,25 +190,12 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-
-      - name: Create application configuration files
+      - name: Build without tests
         run: |
-          mkdir -p ./src/main/resources
-          if [ -n "${{ secrets.APPLICATION_PROPERTIES }}" ]; then
-            echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
-          fi
-        working-directory: backend
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-        working-directory: backend
-
-      - name: Build without running tests
-        run: ./gradlew bootJar -x test
-        working-directory: backend
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
+          cd backend
+          chmod +x gradlew
+          ./gradlew bootJar -x test
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: test-results
@@ -225,17 +207,12 @@ jobs:
     outputs:
       jar-version: ${{ steps.build-info.outputs.jar-version }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
@@ -243,94 +220,68 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-
-      - name: Create application configuration files
-        run: |
-          mkdir -p ./src/main/resources
-          echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
-        working-directory: backend
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-        working-directory: backend
-
       - name: Build with Gradle
-        run: ./gradlew clean build -x test --no-daemon
-        working-directory: backend
-
-      - name: Get build info
-        id: build-info
         run: |
+          cd backend
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon
+      - id: build-info
+        run: |
+          cd backend
           JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" ! -name '*plain.jar' | head -n 1)
-          if [ -z "$JAR_FILE" ]; then
-            echo "❌ JAR not found"
-            ls -la build/libs/
-            exit 1
-          fi
-          JAR_VERSION=$(basename "$JAR_FILE" | sed "s/${JAR_NAME}-//g" | sed 's/.jar//g')
-          echo "jar-version=$JAR_VERSION" >> $GITHUB_OUTPUT
-          echo "📦 Built JAR: $(basename $JAR_FILE)"
-        working-directory: backend
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+          [[ -f "$JAR_FILE" ]] || { echo "JAR not found"; exit 1; }
+          echo "jar-version=$(basename "$JAR_FILE" | sed "s/${JAR_NAME}-//;s/.jar//")" >> $GITHUB_OUTPUT
+          echo "Built JAR: $JAR_FILE"
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ env.JAR_NAME }}
           path: backend/build/libs/${{ env.JAR_NAME }}-*.jar
           retention-days: 7
 
   deploy:
-    needs: [test, build]
+    needs: build
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: ${{ env.JAR_NAME }}
           path: build/libs/
 
-      - name: Prepare deployment
-        id: prepare
+      - name: Prepare SSH Key
         run: |
-          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" | head -n 1)
-          if [ -z "$JAR_FILE" ]; then
-            echo "❌ JAR not found"
-            exit 1
-          fi
-          echo "jar-file=$JAR_FILE" >> $GITHUB_OUTPUT
-          echo "🚀 Ready to deploy: $(basename $JAR_FILE)"
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
 
-      - name: Deploy to EC2 Server
-        env:
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
+      - name: Stop and backup on EC2
         run: |
-          # Save and secure SSH key
-          echo "$EC2_SSH_KEY" > private_key.pem
-          chmod 600 private_key.pem
+          JAR=backend.jar
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            if pgrep -f "$JAR"; then
+              pkill -TERM -f "$JAR"
+              sleep 5
+            fi
+            if [ -f "/home/${{ secrets.EC2_USERNAME }}/$JAR" ]; then
+              cp "/home/${{ secrets.EC2_USERNAME }}/$JAR" "/home/${{ secrets.EC2_USERNAME }}/$JAR.$(date +'%Y%m%d%H%M%S').backup"
+              echo "Backup succeeded"
+            else
+              echo "No existing JAR to backup"
+            fi
+          EOF
 
-          JAR_FILE="${{ steps.prepare.outputs.jar-file }}"
-          TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
+      - name: Upload JAR to EC2
+        run: |
+          scp -i key.pem \
+            build/libs/${{ env.JAR_NAME }}-${{ needs.build.outputs.jar-version }}.jar \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/backend.jar
 
-          echo "🔁 Stopping and backing up app..."
-          ssh -i private_key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
-            $EC2_USERNAME@$EC2_HOST \
-            "pkill -TERM -f $TARGET_JAR_NAME || true; \
-             sleep 5; \
-             if [ -f $TARGET_JAR_NAME ]; then \
-               cp backend.jar backend.jar.backup; echo '✅ Backup complete'; fi" || true
+      - name: Launch on EC2
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            nohup java -jar -Dspring.profiles.active=prod /home/${{ secrets.EC2_USERNAME }}/backend.jar \
+              > /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 &
+            echo "App launched"
+          EOF
 
-          echo "⬆️ Uploading new JAR..."
-          scp -i private_key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
-            "$JAR_FILE" \
-            $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
-
-          echo "🚀 Launching new app..."
-          ssh -i private_key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
-            $EC2_USERNAME@$EC2_HOST \
-            "nohup java -jar -Dspring.profiles.active=prod backend.jar > app.log 2>&1 & echo '✅ App launched'"
-
-          # Clean up the private key
-          rm -f private_key.pem
+      - name: Clean up
+        run: rm -f key.pem
