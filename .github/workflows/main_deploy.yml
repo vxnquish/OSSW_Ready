@@ -182,7 +182,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: '17'
       - name: Cache Gradle packages
         uses: actions/cache@v3
         with:
@@ -216,7 +216,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: '17'
       - name: Build JAR
         id: build
         run: |
@@ -239,6 +239,7 @@ jobs:
         with:
           name: backend-jar
           path: build/libs/
+
       - name: Decode & convert SSH key
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
@@ -247,6 +248,7 @@ jobs:
           chmod 600 private_key.pem
           ssh-keygen -p -m PEM -f private_key.pem -P "" -N "" >/dev/null
           chmod 600 private_key.pem
+
       - name: Deploy to EC2
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
@@ -256,7 +258,8 @@ jobs:
 
           echo "▶ Stop & backup"
           ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} \
-            "pkill -TERM -f backend.jar || true; sleep 5; cd /home/ubuntu; ([ -f backend.jar ] && cp backend.jar backend.jar.backup) || true" \
+            "pkill -TERM -f backend.jar || true; sleep 5; cd /home/ubuntu; \
+             ([ -f backend.jar ] && cp backend.jar backend.jar.backup) || true" \
             || true
 
           echo "▶ Upload new JAR"
@@ -266,8 +269,9 @@ jobs:
 
           echo "▶ Launch app"
           ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} \
-            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod backend.jar > app.log 2>&1 &" \
+            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod backend.jar > app.log 2>&1 & echo '▶ Launched'" \
             || true
+          echo "▶ Launch step completed"
 
       - name: Cleanup
         run: rm -f private_key.pem
