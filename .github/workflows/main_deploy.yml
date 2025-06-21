@@ -311,29 +311,26 @@ jobs:
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
 
-          # Variables
           JAR_FILE="${{ steps.prepare.outputs.jar-file }}"
           TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
 
           echo "🔁 Stopping and backing up app..."
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST << 'EOF_REMOTE'
-          pkill -TERM -f $TARGET_JAR_NAME || true
-          sleep 5
-          if [ -f $TARGET_JAR_NAME ]; then
-            cp $TARGET_JAR_NAME $TARGET_JAR_NAME.backup
-            echo '✅ Backup complete'
-          fi
-          EOF_REMOTE
+          ssh -i private_key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
+            $EC2_USERNAME@$EC2_HOST \
+            "pkill -TERM -f $TARGET_JAR_NAME || true; \
+             sleep 5; \
+             if [ -f $TARGET_JAR_NAME ]; then \
+               cp backend.jar backend.jar.backup; echo '✅ Backup complete'; fi"
 
           echo "⬆️ Uploading new JAR..."
-          scp -i private_key.pem -o StrictHostKeyChecking=no \
-            "$JAR_FILE" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
+          scp -i private_key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
+            "$JAR_FILE" \
+            $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
 
           echo "🚀 Launching new app..."
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST << 'EOF_REMOTE'
-          nohup java -jar -Dspring.profiles.active=prod $TARGET_JAR_NAME > app.log 2>&1 &
-          echo '✅ App launched'
-          EOF_REMOTE
+          ssh -i private_key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
+            $EC2_USERNAME@$EC2_HOST \
+            "nohup java -jar -Dspring.profiles.active=prod backend.jar > app.log 2>&1 & echo '✅ App launched'"
 
           # Clean up the private key
           rm -f private_key.pem
