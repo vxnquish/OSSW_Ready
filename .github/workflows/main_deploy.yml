@@ -305,8 +305,22 @@ jobs:
         env:
           EC2_SSH_KEY_B64: ${{ secrets.EC2_SSH_KEY_B64 }}
         run: |
-          printf "%s" "$EC2_SSH_KEY_B64" | tr -d '\r' | base64 -d > private_key.pem
+          printf "%s" "$EC2_SSH_KEY_B64" | tr -d '\r' | base64 --decode > private_key.pem
           chmod 600 private_key.pem
+          echo "---- private_key.pem head ----"
+          head -n 5 private_key.pem
+          echo "---- private_key.pem tail ----"
+          tail -n 5 private_key.pem
+          echo "---- end format check ----"
+
+      - name: Debug SSH via ssh-agent
+        env:
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          eval "$(ssh-agent -s)"
+          ssh-add private_key.pem
+          ssh -vvv -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "echo 'SSH agent works!'"
 
       - name: Deploy to EC2 Server
         env:
