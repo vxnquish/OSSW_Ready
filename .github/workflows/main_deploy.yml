@@ -282,7 +282,7 @@ jobs:
   deploy:
     needs: [test, build]
     runs-on: ubuntu-latest
-    #environment: production
+    #environment: production  # disable to use repo-level secrets
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v4
@@ -293,35 +293,21 @@ jobs:
       - name: Prepare deployment
         id: prepare
         run: |
-          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" | head -n 1)
-          if [ -z "$JAR_FILE" ]; then
-            echo "❌ JAR not found"
-            exit 1
-          fi
+          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" | head -n1)
           echo "jar-file=$JAR_FILE" >> $GITHUB_OUTPUT
-          echo "🚀 Ready to deploy: $(basename $JAR_FILE)"
 
-      - name: Decode SSH key (with format check)
+      - name: Decode SSH key & convert to PEM
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           printf "%s\n" "$EC2_SSH_KEY" > private_key.pem
+          ssh-keygen -p -m PEM -f private_key.pem -P "" -N ""
           chmod 600 private_key.pem
 
-          echo "---- private_key.pem head ----"
-          head -n 5 private_key.pem
-          echo "---- private_key.pem tail ----"
-          tail -n 5 private_key.pem
-          echo "---- end format check ----"
-
-      - name: Debug SSH via ssh-agent
-        env:
-          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
+      - name: Quick SSH connectivity check
         run: |
-          eval "$(ssh-agent -s)"
-          ssh-add private_key.pem
-          ssh -vvv -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "echo 'SSH agent works!'"
+          ssh -i private_key.pem -o StrictHostKeyChecking=no -vvv \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "echo HELLO"
 
       - name: Deploy to EC2 Server
         env:
@@ -332,21 +318,17 @@ jobs:
           TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
 
           echo "🔁 Stopping and backing up app..."
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
-            pkill -TERM -f $TARGET_JAR_NAME || true
-            sleep 5
-            cd /home/$EC2_USERNAME
-            [ -f $TARGET_JAR_NAME ] && cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup
-          "
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST \
+            "pkill -TERM -f $TARGET_JAR_NAME || true; sleep 5; cd /home/$EC2_USERNAME \
+             && [ -f $TARGET_JAR_NAME ] && cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup"
 
           echo "⬆️ Uploading new JAR..."
-          scp -i private_key.pem -o StrictHostKeyChecking=no "$JAR_FILE" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
+          scp -i private_key.pem -o StrictHostKeyChecking=no "$JAR_FILE" \
+            $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
 
           echo "🚀 Launching new app..."
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
-            cd /home/$EC2_USERNAME
-            nohup java -jar -Dspring.profiles.active=prod $TARGET_JAR_NAME > app.log 2>&1 &
-            echo '✅ App launched'
-          "
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST \
+            "cd /home/$EC2_USERNAME && nohup java -jar -Dspring.profiles.active=prod \
+             $TARGET_JAR_NAME > app.log 2>&1 & echo '✅ App launched'"
 
           rm -f private_key.pem
