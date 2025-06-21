@@ -181,20 +181,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*','backend/**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
       - name: Build without tests
         run: |
           cd backend
           mkdir -p src/main/resources
-          [ -n "${{ secrets.APPLICATION_PROPERTIES }}" ] && echo "${{ secrets.APPLICATION_PROPERTIES }}" > src/main/resources/application.properties
+          [ -n "${{ secrets.APPLICATION_PROPERTIES }}" ] && \
+            echo "${{ secrets.APPLICATION_PROPERTIES }}" > src/main/resources/application.properties
           chmod +x gradlew
           ./gradlew bootJar -x test
       - if: failure()
@@ -221,7 +213,8 @@ jobs:
           cd backend
           chmod +x gradlew
           ./gradlew clean bootJar -x test --no-daemon
-          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" ! -name '*plain.jar' | head -n1)
+          JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" \
+                     ! -name '*plain.jar' | head -n1)
           echo "jar-path=$JAR_FILE" >> $GITHUB_OUTPUT
       - uses: actions/upload-artifact@v4
         with:
@@ -230,7 +223,7 @@ jobs:
           retention-days: 7
 
   deploy:
-    needs: [build]
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -256,17 +249,25 @@ jobs:
           set +e
 
           echo "▶ Stop & backup"
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} \
-            "pkill -TERM -f backend.jar || true; sleep 5; cd /home/ubuntu; \
-             ([ -f backend.jar ] && cp backend.jar backend.jar.backup) || true" || true
+          ssh -i private_key.pem -o StrictHostKeyChecking=no \
+            ubuntu@${EC2_HOST} \
+            "pkill -TERM -f backend.jar || true; \
+             sleep 5; cd /home/ubuntu; \
+             ([ -f backend.jar ] && cp backend.jar backend.jar.backup) || true" \
+            || true
 
           echo "▶ Upload new JAR"
           scp -i private_key.pem -o StrictHostKeyChecking=no \
-            "$JAR_PATH" ubuntu@${EC2_HOST}:/home/ubuntu/backend.jar || true
+            "$JAR_PATH" ubuntu@${EC2_HOST}:/home/ubuntu/backend.jar \
+            || true
 
           echo "▶ Launch app"
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} \
-            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod backend.jar > app.log 2>&1 & echo '▶ Launched'" || true
+          ssh -i private_key.pem -o StrictHostKeyChecking=no \
+            ubuntu@${EC2_HOST} \
+            "cd /home/ubuntu; \
+             nohup java -jar -Dspring.profiles.active=prod backend.jar > app.log 2>&1 &>/dev/null & exit 0" \
+            || true
+
           echo "▶ Launch step completed"
 
       - name: Cleanup
