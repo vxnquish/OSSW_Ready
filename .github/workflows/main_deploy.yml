@@ -320,7 +320,7 @@ jobs:
             "pkill -TERM -f $TARGET_JAR_NAME || true; \
              sleep 5; \
              if [ -f $TARGET_JAR_NAME ]; then \
-               cp backend.jar backend.jar.backup; echo '✅ Backup complete'; fi"
+               cp backend.jar backend.jar.backup; echo '✅ Backup complete'; fi" || true
 
           echo "⬆️ Uploading new JAR..."
           scp -i private_key.pem -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
