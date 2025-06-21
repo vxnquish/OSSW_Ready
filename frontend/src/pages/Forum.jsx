@@ -14,7 +14,7 @@ export default function Forum() {
 
     // 게시물 목록 로드
     const loadPosts = () => {
-        fetch('http://localhost:8080/forum/list/1')
+        fetch('https://vxnquish.github.io/OSSW_Ready/forum')
             .then((res) => res.json())
             .then((data) => {
                 setPosts(Array.isArray(data.forums) ? data.forums : []);
@@ -27,7 +27,7 @@ export default function Forum() {
 
     // 태그 목록 로드
     const loadTags = () => {
-        fetch('http://localhost:8080/forum/tags')
+        fetch('https://vxnquish.github.io/OSSW_Ready/forum/tags')
             .then((res) => res.json())
             .then((data) => {
                 setAvailableTags(Array.isArray(data) ? data : []);
@@ -52,7 +52,7 @@ export default function Forum() {
             mode: 'TAG'
         };
 
-        fetch('http://localhost:8080/forum/search', {
+        fetch('https://vxnquish.github.io/OSSW_Ready/forum/search', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export default function Forum() {
             mode: 'TITLE_AND_CONTENT'
         };
 
-        fetch('http://localhost:8080/forum/search', {
+        fetch('https://vxnquish.github.io/OSSW_Ready/forum/search', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
