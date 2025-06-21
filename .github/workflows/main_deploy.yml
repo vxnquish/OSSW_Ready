@@ -305,7 +305,7 @@ jobs:
         env:
           EC2_SSH_KEY_B64: ${{ secrets.EC2_SSH_KEY_B64 }}
         run: |
-          echo "$EC2_SSH_KEY_B64" | base64 -d > private_key.pem
+          printf "%s" "$EC2_SSH_KEY_B64" | tr -d '\r' | base64 -d > private_key.pem
           chmod 600 private_key.pem
 
       - name: Deploy to EC2 Server
