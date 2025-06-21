@@ -282,7 +282,6 @@ jobs:
   deploy:
     needs: [test, build]
     runs-on: ubuntu-latest
-    #environment: production  # disable if you need repo-level secrets
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v4
@@ -296,50 +295,43 @@ jobs:
           JAR_FILE=$(find build/libs -name "${JAR_NAME}-*.jar" | head -n1)
           echo "jar-file=$JAR_FILE" >> $GITHUB_OUTPUT
 
-      - name: Decode SSH key & convert to PEM
+      - name: Decode & convert SSH key to PEM
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
-          # 1) 원본 키 저장
+          # 1) Save raw key
           printf "%s\n" "$EC2_SSH_KEY" > private_key.pem
-          # 2) 권한 제한 (임시)
           chmod 600 private_key.pem
-          # 3) OpenSSH 포맷 → PEM 포맷 변환
+          # 2) Convert to classic PEM for libcrypto
           ssh-keygen -p -m PEM -f private_key.pem -P "" -N ""
-          # 4) 변환된 파일에도 권한 재적용
           chmod 600 private_key.pem
-
-      - name: Inspect key format
-        run: |
-          file private_key.pem
-          head -n5 private_key.pem
-          tail -n5 private_key.pem
 
       - name: Quick SSH connectivity check
         run: |
           ssh -i private_key.pem -o StrictHostKeyChecking=no -vvv \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "echo HELLO"
+            ubuntu@ec2-13-236-194-20.ap-southeast-2.compute.amazonaws.com "echo HELLO"
 
-      - name: Deploy to EC2 Server
+      - name: Perform deployment
         env:
-          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
           JAR_FILE="${{ steps.prepare.outputs.jar-file }}"
           TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
 
           echo "🔁 Stopping and backing up app..."
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST \
-            "pkill -TERM -f $TARGET_JAR_NAME || true; sleep 5; cd /home/$EC2_USERNAME \
-             && [ -f $TARGET_JAR_NAME ] && cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup"
+          ssh -i private_key.pem -o StrictHostKeyChecking=no \
+            ubuntu@${{ secrets.EC2_HOST }} \
+            "pkill -TERM -f $TARGET_JAR_NAME || true; sleep 5; cd /home/ubuntu; \
+             [ -f $TARGET_JAR_NAME ] && cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup"
 
           echo "⬆️ Uploading new JAR..."
-          scp -i private_key.pem -o StrictHostKeyChecking=no "$JAR_FILE" \
-            $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/$TARGET_JAR_NAME
+          scp -i private_key.pem -o StrictHostKeyChecking=no \
+            "$JAR_FILE" ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/$TARGET_JAR_NAME
 
           echo "🚀 Launching new app..."
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST \
-            "cd /home/$EC2_USERNAME && nohup java -jar -Dspring.profiles.active=prod \
+          ssh -i private_key.pem -o StrictHostKeyChecking=no \
+            ubuntu@${{ secrets.EC2_HOST }} \
+            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod \
              $TARGET_JAR_NAME > app.log 2>&1 & echo '✅ App launched'"
 
           rm -f private_key.pem
