@@ -267,19 +267,19 @@ jobs:
           else
             echo "No existing JAR to backup"
           fi
-  EOF
+          EOF
 
-- name: Upload JAR to EC2
-  run: |
-    scp -i key.pem build/libs/${{ env.JAR_NAME }}-${{ needs.build.outputs.jar-version }}.jar \
-      ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/backend.jar
+      - name: Upload JAR to EC2
+        run: |
+          scp -i key.pem build/libs/${{ env.JAR_NAME }}-${{ needs.build.outputs.jar-version }}.jar \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/backend.jar
 
-- name: Launch on EC2
-  run: |
-    ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
-    nohup java -jar -Dspring.profiles.active=prod /home/${{ secrets.EC2_USERNAME }}/backend.jar > /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 &
-    echo "App launched"
-EOF
+      - name: Launch on EC2
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+          nohup java -jar -Dspring.profiles.active=prod /home/${{ secrets.EC2_USERNAME }}/backend.jar > /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 &
+          echo "App launched"
+          EOF
 
-- name: Clean up
-  run: rm -f key.pem
+      - name: Clean up
+        run: rm -f key.pem
