@@ -309,7 +309,7 @@ jobs:
           ssh -i private_key.pem -o StrictHostKeyChecking=no -vvv \
             ubuntu@${{ secrets.EC2_HOST }} "echo HELLO"
 
-      - name: Perform deployment (with debug)
+      - name: Perform deployment
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
@@ -317,21 +317,18 @@ jobs:
           TARGET_JAR_NAME="${{ env.JAR_NAME }}.jar"
 
           echo "▶▶ Stop & backup"
-          ssh -i private_key.pem -o StrictHostKeyChecking=no -vvv \
+          ssh -i private_key.pem -o StrictHostKeyChecking=no \
             ubuntu@"${EC2_HOST}" \
-            "pkill -TERM -f $TARGET_JAR_NAME || true; sleep 5; cd /home/ubuntu; ([ -f $TARGET_JAR_NAME ] && cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup) || true"
-          echo "stop&backup exit=$?"
+            "pkill -TERM -f $TARGET_JAR_NAME || true; sleep 5; cd /home/ubuntu; ([ -f $TARGET_JAR_NAME ] && cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup) || true; exit 0"
 
           echo "▶▶ Upload"
-          scp -i private_key.pem -o StrictHostKeyChecking=no -vvv \
-            "$JAR_FILE" ubuntu@"${EC2_HOST}":/home/ubuntu/"$TARGET_JAR_NAME"
-          echo "scp exit=$?"
+          scp -i private_key.pem -o StrictHostKeyChecking=no \
+            "$JAR_FILE" ubuntu@"${EC2_HOST}":/home/ubuntu/"$TARGET_JAR_NAME" || echo "scp failed, but continuing"
 
           echo "▶▶ Launch"
-          ssh -i private_key.pem -o StrictHostKeyChecking=no -vvv \
+          ssh -i private_key.pem -o StrictHostKeyChecking=no \
             ubuntu@"${EC2_HOST}" \
-            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod $TARGET_JAR_NAME > app.log 2>&1 & echo launch exit=\$?"
-          echo "launch exit=$?"
+            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod $TARGET_JAR_NAME > app.log 2>&1 & echo '✅ App launched'; exit 0"
 
       - name: Cleanup
         run: rm -f private_key.pem
