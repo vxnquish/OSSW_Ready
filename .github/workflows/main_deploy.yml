@@ -282,7 +282,7 @@ jobs:
   deploy:
     needs: [test, build]
     runs-on: ubuntu-latest
-    #environment: production  # disable to use repo-level secrets
+    #environment: production  # disable if you need repo-level secrets
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v4
@@ -300,9 +300,20 @@ jobs:
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
+          # 1) 원본 키 저장
           printf "%s\n" "$EC2_SSH_KEY" > private_key.pem
-          ssh-keygen -p -m PEM -f private_key.pem -P "" -N ""
+          # 2) 권한 제한 (임시)
           chmod 600 private_key.pem
+          # 3) OpenSSH 포맷 → PEM 포맷 변환
+          ssh-keygen -p -m PEM -f private_key.pem -P "" -N ""
+          # 4) 변환된 파일에도 권한 재적용
+          chmod 600 private_key.pem
+
+      - name: Inspect key format
+        run: |
+          file private_key.pem
+          head -n5 private_key.pem
+          tail -n5 private_key.pem
 
       - name: Quick SSH connectivity check
         run: |
