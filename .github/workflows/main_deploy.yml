@@ -166,8 +166,6 @@ name: Main Branch CI/CD Pipeline
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 env:
   JAR_NAME: 'backend'
@@ -249,7 +247,8 @@ jobs:
           ssh-keygen -p -m PEM -f private_key.pem -P "" -N "" >/dev/null
           chmod 600 private_key.pem
 
-      - name: Deploy to EC2
+      - name: Perform deployment
+        shell: bash {0}
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           JAR_PATH: ${{ needs.build.outputs.jar-path }}
@@ -259,18 +258,15 @@ jobs:
           echo "▶ Stop & backup"
           ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} \
             "pkill -TERM -f backend.jar || true; sleep 5; cd /home/ubuntu; \
-             ([ -f backend.jar ] && cp backend.jar backend.jar.backup) || true" \
-            || true
+             ([ -f backend.jar ] && cp backend.jar backend.jar.backup) || true" || true
 
           echo "▶ Upload new JAR"
           scp -i private_key.pem -o StrictHostKeyChecking=no \
-            "$JAR_PATH" ubuntu@${EC2_HOST}:/home/ubuntu/backend.jar \
-            || true
+            "$JAR_PATH" ubuntu@${EC2_HOST}:/home/ubuntu/backend.jar || true
 
           echo "▶ Launch app"
           ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} \
-            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod backend.jar > app.log 2>&1 & echo '▶ Launched'" \
-            || true
+            "cd /home/ubuntu && nohup java -jar -Dspring.profiles.active=prod backend.jar > app.log 2>&1 & echo '▶ Launched'" || true
           echo "▶ Launch step completed"
 
       - name: Cleanup
