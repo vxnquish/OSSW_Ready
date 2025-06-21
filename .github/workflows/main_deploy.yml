@@ -301,13 +301,27 @@ jobs:
           echo "jar-file=$JAR_FILE" >> $GITHUB_OUTPUT
           echo "🚀 Ready to deploy: $(basename $JAR_FILE)"
 
-      - name: Decode SSH key
+      - name: Decode SSH key (with format check)
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
-          # 원본 PEM 멀티라인 Secret을 파일로 저장
           printf "%s\n" "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
+
+          echo "---- private_key.pem head ----"
+          head -n 5 private_key.pem
+          echo "---- private_key.pem tail ----"
+          tail -n 5 private_key.pem
+          echo "---- end format check ----"
+
+      - name: Debug SSH via ssh-agent
+        env:
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          eval "$(ssh-agent -s)"
+          ssh-add private_key.pem
+          ssh -vvv -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "echo 'SSH agent works!'"
 
       - name: Deploy to EC2 Server
         env:
@@ -322,10 +336,7 @@ jobs:
             pkill -TERM -f $TARGET_JAR_NAME || true
             sleep 5
             cd /home/$EC2_USERNAME
-            if [ -f $TARGET_JAR_NAME ]; then
-              cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup
-              echo '✅ Backup complete'
-            fi
+            [ -f $TARGET_JAR_NAME ] && cp $TARGET_JAR_NAME ${TARGET_JAR_NAME}.backup
           "
 
           echo "⬆️ Uploading new JAR..."
