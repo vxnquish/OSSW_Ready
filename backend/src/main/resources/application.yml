@@ -11,3 +11,8 @@ spring:
       ddl-auto: create # 혹은 validate
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, mappings
