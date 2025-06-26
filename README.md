@@ -493,3 +493,8 @@ RUREADYIMREADY 프로젝트에 기여해주셔서 감사합니다! 💘
 
 > 본 프로젝트는 [MIT License](./LICENSE)를 따릅니다.
 
+## Contributors
+- lyemee (이예나)
+- vxnquish (이희재)
+- jieuni52 (강지은)
+- ireedui2004 (이레뒤)
