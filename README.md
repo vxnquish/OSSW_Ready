@@ -426,6 +426,12 @@ DB가 사전에 생성되어 있어야 하며, 기본 포트는 3306
 
 ---
 
+## 🤝 Contributors
+- vxnquish (이희재)
+- lyemee (이예나)
+- jieuni52 (강지은)
+- ireedui2004 (이레뒤)
+
 ## 🤝 기여 방법
 
 RUREADYIMREADY 프로젝트에 기여해주셔서 감사합니다! 💘  
