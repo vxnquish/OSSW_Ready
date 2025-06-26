@@ -21,8 +21,7 @@
 > 연애에 한 걸음 더 다가가고 싶은 당신을 위한 올인원 서비스 💌
 
 LOVEMAP 배포가 완료 되었습니다!
-프론트엔드 배포 주소: https://rureadylovemap.com
-백엔드 배포 주소: https://rureadylovemap.kr
+배포 주소: https://rureadylovemap.com
 
 ---
 
