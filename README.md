@@ -1,4 +1,4 @@
-# 💘 LOVEMAP - RUREADYIMREADY
+# 💘 lovemap - by RUREADYIMREADY
 
 > 💑 연애에 어려움을 겪는 사람들을 위한 종합 연애 플랫폼  
 > 🧠 연애 상담 AI 🗺️ 데이트 장소 추천 💬 익명게시판 기능을 제공합니다.
